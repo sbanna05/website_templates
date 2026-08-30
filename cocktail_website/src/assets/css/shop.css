@@ -1,0 +1,202 @@
+@import url('index.css');
+
+/* ===== Container ===== */
+#shop {
+    max-width: 1850px;
+    margin: 3rem auto 2rem auto;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding-inline: 1rem;
+    box-sizing: border-box;
+}
+
+/* ===== Shop Title ===== */
+.shop_title {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* ===== Shop Header ===== */
+.shop_header {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dark-theme .search_bar {
+    color: var(--white-color);
+}
+
+.dark-theme .search_input {
+    background-color: var(--grey-color);
+    color: var(--white-color);
+    border: 1px solid var(--card-accent);
+}
+
+.search_bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 1200px;
+    background: var(--white-color);
+    padding: 0.7rem 1rem;
+    border-radius: 0.7rem;
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.4);
+}
+
+.search_input {
+    flex: 1;
+    padding: var(--mb-0-5) var(--mb-1);
+    border: 1px solid var(--card-accent);
+    border-radius: 0.5rem;
+    font-size: 1.1rem;
+    background-color: var(--light-grey-color);
+    color: var(--white-color);
+    outline: none;
+    transition: border 0.2s;
+}
+
+.search_input::placeholder{
+    color: var(--white-color)
+}
+
+.search_input:focus {
+    border: 1.5px solid var(--accent-color);
+}
+
+/* ===== Section Subtitle ===== */
+.section_subtitle {
+    margin-block: var(--mb-0-5);
+    font-size: var(--bigger-font-size);
+    text-align: center;
+}
+
+/* ===== Beverages & Essentials Sections ===== */
+.beverages, .essentials {
+    width: 100%;
+    background: var(--secondary-color);
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 8px 8px rgba(0,0,0,0.3);
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* ===== Grid Containers ===== */
+.drink_cards_container,
+.bar_tools_container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    padding: 0 1rem;
+}
+
+/* ===== Cards ===== */
+.drink_card, .tool_card {
+    width: 100%;
+    max-width: 250px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius-card);
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
+
+.drink_card:hover, .tool_card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.drink_img, .tool_img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+}
+
+.drink_info, .tool_info{
+    color: var(--grey-color);
+}
+
+.add_to_cart {
+    margin-top: 0.5rem;
+    padding: 0.4rem 1rem;
+    background-color: var(--third-color);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+.add_to_cart:hover {
+    background-color: var(--dark-ruby);
+}
+
+/* ===== Navigation Icons ===== */
+.nav_cart, .nav_profile {
+    position: relative;
+    cursor: pointer;
+    font-size: var(--normal-font-size);
+    color: var(--grey-color);
+    transition: color 0.3s;
+}
+
+.nav_cart:hover, .nav_profile:hover {
+    color: var(--white-color);
+}
+
+/* ===== Responsive ===== */
+@media (min-width: 1154px) {
+    .drink_cards_container, .bar_tools_container {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        padding: 0 1.5rem;
+    }
+    .drink_card, .tool_card{
+        width: 350px;
+    }
+
+}
+/* Tablet */
+@media (max-width: 1024px) {
+    .drink_cards_container, .bar_tools_container {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        padding: 0 1rem;
+    }
+
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .shop_header {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    .drink_cards_container, .bar_tools_container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        padding: 0 0.5rem;
+    }
+    .drink_card, .tool_card {
+        max-width: 100%;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .drink_cards_container, .bar_tools_container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0 0.5rem;
+    }
+}
