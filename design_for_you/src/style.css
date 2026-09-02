@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+  /* Téma: Beige & Sage Green */
+  --glass-bg: rgba(245, 242, 235, 0.65); /* Áttetsző bézs */
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --text-main: #3a403d;
+  --text-muted: #74807a;
+  --accent-green: #4A5D4E; /* Elegáns zsálya zöld */
+  --accent-hover: #3d4d40;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-main);
+  overflow: hidden; 
+  position: relative;
+}
+
+/* Fő konténer */
+.designer-layout {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* --- MÓDVÁLASZTÓ (Jobb Felső Sarok) --- */
+.mode-switcher {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 999; /* Extrán magas érték, hogy biztos legelöl legyen! */
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 30px;
+  padding: 0.4rem;
+  display: flex;
+  gap: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+/* --- BAL OLDALI SÁV (Sidebar) --- */
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 100vh;
+  z-index: 998; /* A Canvas felett, de a switcher alatt */
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: 4px 0 32px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 2.5rem 2rem 1.5rem 2rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.brand-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 300;
+  margin: 0 0 0.2rem 0;
+  letter-spacing: -1px;
+}
+
+.math-italic {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--accent-green);
+}
+
+.subtitle {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.sidebar-content {
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* --- PANELEK ÉS VEZÉRLŐK --- */
+.panel {
+  margin-bottom: 2.5rem;
+}
+
+.panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  font-style: italic;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--accent-green);
+}
+
+.modern-select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(74, 93, 78, 0.2);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.5); /* Félig átlátszó input */
+  outline: none;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modern-select:hover, .modern-select:focus {
+  border-color: var(--accent-green);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* --- SZÍNEK ÉS TEXTÚRÁK --- */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 12px;
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.swatch:hover {
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  border-color: #fff;
+}
+
+.texture-swatch {
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+}
+
+.canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
