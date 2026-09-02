@@ -36,7 +36,6 @@ const palettes = {
 }
 const currentColors = computed(() => palettes[activePaletteName.value])
 
-// Az összes 3D elem állapota (mindkét módhoz)
 const textureLoader = new THREE.TextureLoader()
 const objectStyles = ref({
   wall:  { type: 'color', value: '#e0d6bf', texture: null },
@@ -53,24 +52,69 @@ const applyColor = (hexCode) => {
 
 const applyTexture = (imgUrl) => {
   textureLoader.load(imgUrl, (loadedTexture) => {
+    // Tiling beállítása
     loadedTexture.wrapS = THREE.RepeatWrapping
     loadedTexture.wrapT = THREE.RepeatWrapping
     loadedTexture.repeat.set(2, 2)
+    
+    loadedTexture.colorSpace = THREE.SRGBColorSpace
+    
     objectStyles.value[activeTarget.value] = { type: 'texture', value: '#fff', texture: loadedTexture }
   })
 }
 
-const textures = ref([])
+const textures = ref([
+  {
+    id: 'local_tile',
+    name: 'Tiled Floor',
+    thumb: '/textures/tiled_floor_001.jpg',
+    image: '/textures/tiled_floor_001.jpg' 
+  },
+  {
+    id: 'local_floor',
+    name: 'Floor Diffuse',
+    thumb: '/textures/flour_diff_4k.jpg',
+    image: '/textures/flour_diff_4k.jpg'
+  },
+  {
+    id: 'local_fabric_pattern',
+    name: 'Fabric Pattern',
+    thumb: '/textures/fabric_pattern_07_col_1_1k.png',
+    image: '/textures/fabric_pattern_07_col_1_1k.png'
+  },
+  {
+    id: 'local_floral_jacquard',
+    name: 'Floral Jacquard',
+    thumb: '/textures/floral_jacquard_diff_1k.jpg',
+    image: '/textures/floral_jacquard_diff_1k.jpg'
+  },
+  {
+    id: 'local_velour_velvet',
+    name: 'Velour Velvet',
+    thumb: '/textures/velour_velvet_diff_1k.jpg',
+    image: '/textures/velour_velvet_diff_1k.jpg'
+  },
+  {
+    id: 'local_velour_velvet_spec_ior',
+    name: 'Velour Velvet Specular IOR',
+    thumb: '/textures/velour_velvet_spec_ior_1k.png',
+    image: '/textures/velour_velvet_spec_ior_1k.png'
+  }
+])
 
 const fetchTextures = async () => {
   try {
-    const res = await fetch('https://api.polyhaven.com/assets?t=textures')
+    const res = await fetch('https://api.polyhaven.com/assets?t=textures&c=fabric')
     const data = await res.json()
-    textures.value = Object.keys(data).slice(0, 8).map(key => ({
+    
+    const apiTextures = Object.keys(data).slice(0, 6).map(key => ({
       id: key,
       name: data[key].name,
-      image: `https://cdn.polyhaven.com/asset_img/thumbs/${key}.png`
+      thumb: `https://cdn.polyhaven.com/asset_img/thumbs/${key}.png`,
+      image: `https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/${key}/${key}_diff_1k.jpg`
     }))
+    
+    textures.value = [...textures.value, ...apiTextures]
   } catch (err) {
     console.error("API hiba:", err)
   }
@@ -135,7 +179,7 @@ onMounted(() => {
 
         <div class="panel">
           <h3 class="panel-title">3. Apply Materials</h3>
-          <div v-if="textures.length === 0" class="loading-text">Loading materials...</div>
+          <div v-if="textures.length === 2" class="loading-text">Fetching more from API...</div>
           <div class="swatch-grid texture-grid">
             <button 
               v-for="tex in textures" 
@@ -153,7 +197,7 @@ onMounted(() => {
     <!-- 3D CANVAS -->
     <main class="canvas-container">
       <Suspense>
-        <TresCanvas clear-color="#e8e5df" window-size>
+        <TresCanvas clear-color="#e8e5df">
           <TresPerspectiveCamera :position="[5, 4, 7]" :look-at="[0, 1, 0]" />
           <OrbitControls />
           
@@ -208,183 +252,3 @@ onMounted(() => {
 
   </div>
 </template>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500&display=swap');
-
-:root {
-  --glass-bg: rgba(245, 242, 235, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --text-main: #3a403d;
-  --text-muted: #74807a;
-  --accent-green: #4A5D4E;
-  --accent-hover: #3d4d40;
-}
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  color: var(--text-main);
-  overflow: hidden; 
-}
-
-/* Fő konténer */
-.designer-layout {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
-.mode-switcher {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
-  z-index: 20;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 30px;
-  padding: 0.4rem;
-  display: flex;
-  gap: 0.5rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-}
-
-.mode-btn {
-  background: transparent;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 20px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-main);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.mode-btn.active {
-  background: var(--accent-green);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(74, 93, 78, 0.3);
-}
-
-.sidebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 400px;
-  height: 100vh;
-  background-color: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-right: 1px solid var(--glass-border);
-  box-shadow: 4px 0 32px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
-}
-
-.sidebar-header {
-  padding: 2.5rem 2rem 1.5rem 2rem;
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.brand-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 2.4rem;
-  font-weight: 300;
-  margin: 0 0 0.2rem 0;
-  letter-spacing: -1px;
-}
-
-.math-italic {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-weight: 600;
-  color: var(--accent-green);
-}
-
-.subtitle {
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.sidebar-content {
-  padding: 2rem;
-  overflow-y: auto;
-}
-
-.panel {
-  margin-bottom: 2.5rem;
-}
-
-.panel-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.4rem;
-  font-style: italic;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--accent-green);
-}
-
-.modern-select {
-  width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid rgba(74, 93, 78, 0.2);
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.95rem;
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.5);
-  outline: none;
-  margin-bottom: 1.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.modern-select:hover, .modern-select:focus {
-  border-color: var(--accent-green);
-  background: rgba(255, 255, 255, 0.8);
-}
-
-.swatch-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-  gap: 12px;
-}
-
-.swatch {
-  aspect-ratio: 1;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-}
-
-.swatch:hover {
-  transform: scale(1.15) translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-  border-color: #fff;
-}
-
-.texture-swatch {
-  background-size: cover;
-  background-position: center;
-  border-radius: 12px;
-}
-
-.canvas-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1; 
-}
-</style>

@@ -16,9 +16,9 @@ Users can toggle between two distinct modes—**Interior Design** and **Clothing
 
 * **🎭 Dual Modes:** Switch seamlessly between "Interior Design" (room, bed, table) and "Clothing" (shirt, trousers, shoes) environments.
 * **🖌️ Curated Color Palettes:** Test designs instantly with hand-picked thematic palettes:
-* *Vibrant & Pop-Art*
-* *Soft Pastel*
-* *Deep Elegant*
+  * *Vibrant & Pop-Art*
+  * *Soft Pastel*
+  * *Deep Elegant*
 * **🧱 Realistic Materials:** Integrated with the **Poly Haven API** to fetch and apply real-world, high-quality textures (wood, stone, fabrics) to 3D objects on the fly.
 *   **💎 Modern UI/UX:** Features a responsive, frosted-glass sidebar (Glassmorphism), satisfying hover animations, and a full-screen interactive 3D canvas.
 *   **⚡ High Performance:** Built with Vue's Composition API and optimized texture loading to ensure smooth 3D rendering in the browser.
