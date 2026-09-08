@@ -1,254 +1,197 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import * as THREE from 'three'
-import { TresCanvas } from '@tresjs/core'
-import { OrbitControls } from '@tresjs/cientos'
+import { sceneConfig, palettes } from './config/sceneObjects'
+import { useResizable } from './composables/useResizable'
 
-const appMode = ref('interior') 
+import TargetPicker from './components/TargetPicker.vue'
+import PaletteSwatches from './components/PaletteSwatches.vue'
+import ColorMixer from './components/ColorMixer.vue'
+import MaterialSwatches from './components/MaterialSwatches.vue'
+import ModelLibraryPanel from './components/ModelLibraryPanel.vue'
+import ModelViewport from './components/ModelViewport.vue'
 
-const targetOptions = computed(() => {
-  if (appMode.value === 'interior') {
-    return [
-      { id: 'wall', label: 'Room Wall' },
-      { id: 'bed', label: 'Bed Linens' },
-      { id: 'table', label: 'Wooden Table' }
-    ]
-  } else {
-    return [
-      { id: 'shirt', label: 'T-Shirt' },
-      { id: 'pants', label: 'Trousers' },
-      { id: 'shoes', label: 'Shoes' }
-    ]
-  }
+// ---- Mode + target selection -------------------------------------------
+const appMode = ref('interior')
+const items = computed(() => sceneConfig[appMode.value])
+const activeTarget = ref(items.value[0].id)
+
+watch(appMode, () => {
+  activeTarget.value = items.value[0].id
 })
 
-const activeTarget = ref('wall')
-watch(appMode, (newMode) => {
-  activeTarget.value = newMode === 'interior' ? 'wall' : 'shirt'
-})
+// ---- Palette --------------------------------------------------------------
+const activePaletteName = ref('vibrant')
 
-const activePaletteName = ref('vibrant') 
+// ---- Tint/Shade/Tone mixer base color --------------------------------------
+// Deliberately its OWN piece of state, independent of any object's applied
+// color. It only ever changes when the user picks a "given" color — a
+// palette swatch, or the native color picker inside the mixer itself.
+// Applying a *mixed* result to an object must never feed back into this,
+// or every click would shift the base and the mixer would drift with each
+// use. See ColorMixer.vue and onApplyMixedColor/onDropColor below.
+const mixerBaseColor = ref(palettes.vibrant[0])
 
-const palettes = {
-  vibrant: ['#03c4a6', '#c4039f', '#197e04', '#2c7cf5', '#c40320', '#db7de0', '#00c0f4', '#e974c5', '#0384c4', '#d75179', '#b222a8'],
-  pastel: ['#b3e9ca', '#cfe2ff', '#f5f4a6', '#fee1a2', '#ffcece', '#cca3d2', '#e0d6bf', '#b2b2b2'],
-  elegant: ['#007563', '#830143', '#9cf093', '#566563', '#005a4c', '#043887', '#b97a00', '#6c1313', '#4e2099']
-}
-const currentColors = computed(() => palettes[activePaletteName.value])
-
+// ---- Per-object styling -----------------------------------------------------
 const textureLoader = new THREE.TextureLoader()
-const objectStyles = ref({
-  wall:  { type: 'color', value: '#e0d6bf', texture: null },
-  bed:   { type: 'color', value: '#cfe2ff', texture: null },
-  table: { type: 'color', value: '#b97a00', texture: null },
-  shirt: { type: 'color', value: '#03c4a6', texture: null },
-  pants: { type: 'color', value: '#043887', texture: null },
-  shoes: { type: 'color', value: '#566563', texture: null }
-})
 
-const applyColor = (hexCode) => {
-  objectStyles.value[activeTarget.value] = { type: 'color', value: hexCode, texture: null }
+function buildDefaultStyles() {
+  const map = {}
+  for (const mode of Object.keys(sceneConfig)) {
+    for (const item of sceneConfig[mode]) {
+      map[item.id] = { color: item.defaultColor, texture: null }
+    }
+  }
+  return map
+}
+// `color` and `texture` are independent: setting one never clears the
+// other, so a color always tints whatever texture (if any) is applied.
+const objectStyles = reactive(buildDefaultStyles())
+
+function applyColorTo(id, hex) {
+  objectStyles[id] = { ...objectStyles[id], color: hex }
 }
 
-const applyTexture = (imgUrl) => {
-  textureLoader.load(imgUrl, (loadedTexture) => {
-    // Tiling beállítása
-    loadedTexture.wrapS = THREE.RepeatWrapping
-    loadedTexture.wrapT = THREE.RepeatWrapping
-    loadedTexture.repeat.set(2, 2)
-    
-    loadedTexture.colorSpace = THREE.SRGBColorSpace
-    
-    objectStyles.value[activeTarget.value] = { type: 'texture', value: '#fff', texture: loadedTexture }
+function applyTextureTo(id, imageUrl) {
+  textureLoader.load(imageUrl, (loaded) => {
+    loaded.wrapS = THREE.RepeatWrapping
+    loaded.wrapT = THREE.RepeatWrapping
+    loaded.repeat.set(2, 2)
+    loaded.colorSpace = THREE.SRGBColorSpace
+    objectStyles[id] = { ...objectStyles[id], texture: loaded }
   })
 }
 
-const textures = ref([
-  {
-    id: 'local_tile',
-    name: 'Tiled Floor',
-    thumb: '/textures/tiled_floor_001.jpg',
-    image: '/textures/tiled_floor_001.jpg' 
-  },
-  {
-    id: 'local_floor',
-    name: 'Floor Diffuse',
-    thumb: '/textures/flour_diff_4k.jpg',
-    image: '/textures/flour_diff_4k.jpg'
-  },
-  {
-    id: 'local_fabric_pattern',
-    name: 'Fabric Pattern',
-    thumb: '/textures/fabric_pattern_07_col_1_1k.png',
-    image: '/textures/fabric_pattern_07_col_1_1k.png'
-  },
-  {
-    id: 'local_floral_jacquard',
-    name: 'Floral Jacquard',
-    thumb: '/textures/floral_jacquard_diff_1k.jpg',
-    image: '/textures/floral_jacquard_diff_1k.jpg'
-  },
-  {
-    id: 'local_velour_velvet',
-    name: 'Velour Velvet',
-    thumb: '/textures/velour_velvet_diff_1k.jpg',
-    image: '/textures/velour_velvet_diff_1k.jpg'
-  },
-  {
-    id: 'local_velour_velvet_spec_ior',
-    name: 'Velour Velvet Specular IOR',
-    thumb: '/textures/velour_velvet_spec_ior_1k.png',
-    image: '/textures/velour_velvet_spec_ior_1k.png'
-  }
-])
-
-const fetchTextures = async () => {
-  try {
-    const res = await fetch('https://api.polyhaven.com/assets?t=textures&c=fabric')
-    const data = await res.json()
-    
-    const apiTextures = Object.keys(data).slice(0, 6).map(key => ({
-      id: key,
-      name: data[key].name,
-      thumb: `https://cdn.polyhaven.com/asset_img/thumbs/${key}.png`,
-      image: `https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/${key}/${key}_diff_1k.jpg`
-    }))
-    
-    textures.value = [...textures.value, ...apiTextures]
-  } catch (err) {
-    console.error("API hiba:", err)
-  }
+// Picking a palette color: paints the active target AND becomes the new
+// mixer base, since it's a "given" color.
+function onApplyPaletteColor(hex) {
+  applyColorTo(activeTarget.value, hex)
+  mixerBaseColor.value = hex
 }
 
-onMounted(() => {
-  fetchTextures()
+// Picking a mixed (tint/shade/tone) result: paints the active target only.
+function onApplyMixedColor(hex) {
+  applyColorTo(activeTarget.value, hex)
+}
+
+function onApplyTexture(url) {
+  applyTextureTo(activeTarget.value, url)
+}
+
+// Dragging a swatch can paint any object directly — a card in the target
+// list, or the object itself in the 3D view — regardless of what's
+// currently selected. `source` (set by the swatch that started the drag)
+// decides whether this also updates the mixer base.
+function onDropColor({ id, color, source }) {
+  applyColorTo(id, color)
+  if (source === 'palette') mixerBaseColor.value = color
+}
+
+function onDropTexture({ id, texture }) {
+  applyTextureTo(id, texture)
+}
+
+// ---- Sidebar resize / collapse ---------------------------------------------
+const sidebarCollapsed = ref(false)
+const { width: sidebarWidth, isResizing, startResize } = useResizable({
+  initial: 400,
+  min: 320,
+  max: 640
 })
 </script>
 
 <template>
   <div class="designer-layout">
-    
     <div class="mode-switcher">
-      <button 
-        :class="['mode-btn', { active: appMode === 'interior' }]" 
-        @click="appMode = 'interior'">
+      <button
+        :class="['mode-btn', { active: appMode === 'interior' }]"
+        @click="appMode = 'interior'"
+      >
         Interior Design
       </button>
-      <button 
-        :class="['mode-btn', { active: appMode === 'clothing' }]" 
-        @click="appMode = 'clothing'">
+      <button
+        :class="['mode-btn', { active: appMode === 'clothing' }]"
+        @click="appMode = 'clothing'"
+      >
         Clothing
       </button>
     </div>
 
-    <aside class="sidebar">
-      <header class="sidebar-header">
-        <h1 class="brand-title">Design <span class="math-italic">Studio</span></h1>
-        <p class="subtitle">Customize your {{ appMode === 'interior' ? 'space' : 'style' }}</p>
-      </header>
-      
-      <div class="sidebar-content">
-        <div class="panel">
-          <h3 class="panel-title">1. Select Target</h3>
-          <select v-model="activeTarget" class="modern-select">
-            <option v-for="opt in targetOptions" :key="opt.id" :value="opt.id">
-              {{ opt.label }}
-            </option>
-          </select>
-        </div>
+    <button
+      class="collapse-toggle"
+      :class="{ collapsed: sidebarCollapsed }"
+      :style="{ left: sidebarCollapsed ? '1.5rem' : sidebarWidth + 24 + 'px' }"
+      @click="sidebarCollapsed = !sidebarCollapsed"
+      :title="sidebarCollapsed ? 'Show panel' : 'Hide panel'"
+    >
+      {{ sidebarCollapsed ? '›' : '‹' }}
+    </button>
 
-        <div class="panel">
-          <h3 class="panel-title">2. Choose Palette</h3>
-          <select v-model="activePaletteName" class="modern-select">
-            <option value="vibrant">Vibrant & Pop-Art</option>
-            <option value="pastel">Soft Pastel</option>
-            <option value="elegant">Deep Elegant</option>
-          </select>
-          
-          <div class="swatch-grid">
-            <button 
-              v-for="color in currentColors" 
-              :key="color"
-              class="swatch color-swatch"
-              :style="{ backgroundColor: color }"
-              @click="applyColor(color)"
-              :title="color"
-            ></button>
-          </div>
-        </div>
+    <aside
+      class="sidebar"
+      :class="{ collapsed: sidebarCollapsed, resizing: isResizing }"
+      :style="{ width: sidebarCollapsed ? '0px' : sidebarWidth + 'px' }"
+    >
+      <div class="sidebar-inner" :style="{ width: sidebarWidth + 'px' }">
+        <header class="sidebar-header">
+          <h1 class="brand-title">Design <span class="math-italic">Studio</span></h1>
+          <p class="subtitle">Customize your {{ appMode === 'interior' ? 'space' : 'style' }}</p>
+        </header>
 
-        <div class="panel">
-          <h3 class="panel-title">3. Apply Materials</h3>
-          <div v-if="textures.length === 2" class="loading-text">Fetching more from API...</div>
-          <div class="swatch-grid texture-grid">
-            <button 
-              v-for="tex in textures" 
-              :key="tex.id" 
-              class="swatch texture-swatch"
-              :style="{ backgroundImage: `url(${tex.image})` }"
-              @click="applyTexture(tex.image)"
-              :title="tex.name"
-            ></button>
-          </div>
+        <div class="sidebar-content">
+          <section class="panel">
+            <h3 class="panel-title">1. Select Target</h3>
+            <TargetPicker
+              v-model="activeTarget"
+              :options="items"
+              @drop-color="onDropColor"
+              @drop-texture="onDropTexture"
+            />
+          </section>
+
+          <section class="panel">
+            <h3 class="panel-title">2. Choose Palette</h3>
+            <PaletteSwatches
+              v-model="activePaletteName"
+              :palettes="palettes"
+              @apply-color="onApplyPaletteColor"
+            />
+          </section>
+
+          <section class="panel">
+            <h3 class="panel-title">3. Tint · Shade · Tone</h3>
+            <ColorMixer
+              v-model="mixerBaseColor"
+              @apply-color="onApplyMixedColor"
+            />
+          </section>
+
+          <section class="panel">
+            <h3 class="panel-title">4. Apply Materials</h3>
+            <MaterialSwatches @apply-texture="onApplyTexture" />
+          </section>
+
+          <section class="panel">
+            <h3 class="panel-title">5. 3D Models <span class="badge">soon</span></h3>
+            <ModelLibraryPanel :items="items" />
+          </section>
         </div>
       </div>
+
+      <div
+        class="resize-handle"
+        @mousedown="startResize"
+        title="Drag to resize"
+      ></div>
     </aside>
 
-    <!-- 3D CANVAS -->
     <main class="canvas-container">
-      <Suspense>
-        <TresCanvas clear-color="#e8e5df">
-          <TresPerspectiveCamera :position="[5, 4, 7]" :look-at="[0, 1, 0]" />
-          <OrbitControls />
-          
-          <TresAmbientLight :intensity="0.7" />
-          <TresDirectionalLight :position="[5, 10, 5]" :intensity="1" cast-shadow />
-
-          <!-- INTERIOR Mode -->
-          <TresGroup v-if="appMode === 'interior'">
-            <TresMesh :position="[0, 2, -2]">
-              <TresBoxGeometry :args="[8, 4, 0.2]" />
-              <TresMeshStandardMaterial v-if="objectStyles.wall.type === 'color'" :color="objectStyles.wall.value" />
-              <TresMeshStandardMaterial v-else :map="objectStyles.wall.texture" />
-            </TresMesh>
-            <TresMesh :position="[1.5, 0.5, 1]">
-              <TresBoxGeometry :args="[2, 1, 1]" />
-              <TresMeshStandardMaterial v-if="objectStyles.table.type === 'color'" :color="objectStyles.table.value" />
-              <TresMeshStandardMaterial v-else :map="objectStyles.table.texture" :roughness="0.7"/>
-            </TresMesh>
-            <TresMesh :position="[-1.5, 0.3, 0.5]">
-              <TresBoxGeometry :args="[2.5, 0.6, 3.5]" />
-              <TresMeshStandardMaterial v-if="objectStyles.bed.type === 'color'" :color="objectStyles.bed.value" />
-              <TresMeshStandardMaterial v-else :map="objectStyles.bed.texture" />
-            </TresMesh>
-          </TresGroup>
-
-          <!-- CLOTHING Mode (Placeholders) -->
-          <TresGroup v-else>
-            <!-- Shirt -->
-            <TresMesh :position="[0, 3, 0]">
-              <TresCylinderGeometry :args="[1.2, 1.2, 2.5, 32]" />
-              <TresMeshStandardMaterial v-if="objectStyles.shirt.type === 'color'" :color="objectStyles.shirt.value" />
-              <TresMeshStandardMaterial v-else :map="objectStyles.shirt.texture" />
-            </TresMesh>
-            <!-- Pants -->
-            <TresMesh :position="[0, 0.5, 0]">
-              <TresBoxGeometry :args="[1.4, 2.5, 1]" />
-              <TresMeshStandardMaterial v-if="objectStyles.pants.type === 'color'" :color="objectStyles.pants.value" />
-              <TresMeshStandardMaterial v-else :map="objectStyles.pants.texture" />
-            </TresMesh>
-            <!-- Shoe  -->
-            <TresMesh :position="[0, -1, 0.2]">
-              <TresBoxGeometry :args="[1.6, 0.4, 1.4]" />
-              <TresMeshStandardMaterial v-if="objectStyles.shoes.type === 'color'" :color="objectStyles.shoes.value" />
-              <TresMeshStandardMaterial v-else :map="objectStyles.shoes.texture" />
-            </TresMesh>
-          </TresGroup>
-          
-          <TresGridHelper :args="[10, 10]" />
-        </TresCanvas>
-      </Suspense>
+      <ModelViewport
+        :items="items"
+        :paint-map="objectStyles"
+        @drop-color="onDropColor"
+        @drop-texture="onDropTexture"
+      />
     </main>
-
   </div>
 </template>

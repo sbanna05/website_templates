@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500&display=swap');
 
 :root {
-  /* Téma: Beige & Sage Green */
+  /* Theme: Beige & Sage Green */
   --glass-bg: rgba(245, 242, 235, 0.65);
   --glass-border: rgba(255, 255, 255, 0.4);
   --text-main: #3a403d;
@@ -14,10 +14,10 @@ body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   color: var(--text-main);
-  overflow: hidden; 
+  overflow: hidden;
 }
 
-/* Vite alapbeállításainak felülírása a teljes képernyőhöz */
+/* Override Vite's default centered app container for a full-bleed layout */
 #app {
   max-width: 100% !important;
   margin: 0 !important;
@@ -33,7 +33,7 @@ body {
   height: 100vh;
 }
 
-/* --- MÓDVÁLASZTÓ (Jobb Felső Sarok) --- */
+/* --- MODE SWITCHER (top right) --- */
 .mode-switcher {
   position: absolute;
   top: 2rem;
@@ -47,7 +47,7 @@ body {
   padding: 0.4rem;
   display: flex;
   gap: 0.5rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .mode-btn {
@@ -69,21 +69,72 @@ body {
   box-shadow: 0 4px 12px rgba(74, 93, 78, 0.3);
 }
 
-/* --- BAL OLDALI SÁV (Sidebar) --- */
+/* --- SIDEBAR --- */
 .sidebar {
   position: absolute;
   top: 0;
   left: 0;
-  width: 400px;
   height: 100vh;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
   background-color: var(--glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid var(--glass-border);
-  box-shadow: 4px 0 32px rgba(0,0,0,0.05);
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.05);
+  z-index: 998;
+  transition: width 0.25s ease;
+}
+
+/* Disable the transition while actively dragging the resize handle,
+   so the panel tracks the cursor with no lag. */
+.sidebar.resizing {
+  transition: none;
+}
+
+.sidebar-inner {
   display: flex;
   flex-direction: column;
-  z-index: 998;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.resize-handle {
+  width: 6px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.resize-handle:hover,
+.sidebar.resizing .resize-handle {
+  background: rgba(74, 93, 78, 0.25);
+}
+
+/* Floating pill that shows/hides the sidebar and slides with its edge */
+.collapse-toggle {
+  position: absolute;
+  top: 2rem;
+  z-index: 999;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--accent-green);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transition: left 0.25s ease, background 0.2s ease;
+}
+
+.collapse-toggle:hover {
+  background: #fff;
 }
 
 .sidebar-header {
@@ -119,18 +170,31 @@ body {
   overflow-y: auto;
 }
 
-/* --- PANELEK ÉS VEZÉRLŐK --- */
 .panel {
   margin-bottom: 2.5rem;
 }
 
 .panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.4rem;
   font-style: italic;
   font-weight: 600;
   margin-bottom: 1rem;
   color: var(--accent-green);
+}
+
+.badge {
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--accent-green);
+  border: 1px solid rgba(74, 93, 78, 0.3);
+  border-radius: 20px;
+  padding: 0.15rem 0.55rem;
 }
 
 .modern-select {
@@ -148,12 +212,13 @@ body {
   transition: all 0.2s;
 }
 
-.modern-select:hover, .modern-select:focus {
+.modern-select:hover,
+.modern-select:focus {
   border-color: var(--accent-green);
   background: rgba(255, 255, 255, 0.8);
 }
 
-/* --- SZÍNEK ÉS TEXTÚRÁK --- */
+/* --- COLOR + TEXTURE SWATCHES --- */
 .swatch-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
@@ -164,21 +229,25 @@ body {
   aspect-ratio: 1;
   border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
-  cursor: pointer;
+  cursor: grab;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.swatch:active {
+  cursor: grabbing;
 }
 
 .swatch:hover {
   transform: scale(1.15) translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
   border-color: #fff;
 }
 
 .texture-swatch {
   background-size: cover;
   background-position: center;
-  border-radius: 12px; 
+  border-radius: 12px;
 }
 
 .loading-text {
@@ -187,12 +256,22 @@ body {
   margin-bottom: 10px;
 }
 
-/* --- 3D CANVAS KONTÉNER --- */
+/* --- 3D CANVAS CONTAINER --- */
 .canvas-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0; 
+  z-index: 0;
+}
+
+/* Respect reduced-motion preferences for the transitions above */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .collapse-toggle,
+  .swatch,
+  .mode-btn {
+    transition: none !important;
+  }
 }
