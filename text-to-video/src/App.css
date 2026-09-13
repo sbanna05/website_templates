@@ -1,0 +1,368 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --canvas: #16151c;
+  --panel: #1e1c26;
+  --surface: #272430;
+  --border: #38343f;
+  --text-primary: #f5f1ea;
+  --text-secondary: #9c97a8;
+  --accent: #e8a33d;
+  --accent-dim: rgba(232, 163, 61, 0.16);
+  --danger: #c0463f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--canvas);
+  color: var(--text-primary);
+}
+
+button {
+  font-family: inherit;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--canvas);
+}
+
+/* Sidebar ------------------------------------------------------------ */
+
+.sidebar {
+  width: 480px;
+  flex-shrink: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 32px 28px 40px;
+  overflow-y: auto;
+}
+
+.sidebar-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+
+.sidebar-header p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 28px;
+}
+
+.control-group {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.control-group:first-of-type {
+  padding-top: 0;
+}
+
+.control-group label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.control-value {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.control-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.control-row label {
+  margin-bottom: 0;
+}
+
+textarea,
+select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+textarea:focus-visible,
+select:focus-visible,
+input[type='range']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input[type='color'] {
+  width: 40px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 2px;
+  cursor: pointer;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  border-radius: 999px;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+/* Background controls -------------------------------------------------- */
+
+.background-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.background-color-input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 2px;
+  cursor: pointer;
+}
+
+.background-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.background-upload input[type='file'] {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.background-upload input[type='file']::file-selector-button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.background-upload input[type='file']::file-selector-button:hover {
+  border-color: var(--accent);
+}
+
+.background-file-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+/* Text box list --------------------------------------------------------- */
+
+.textbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.textbox-editor {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.textbox-editor-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.textbox-editor-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.textbox-editor-chevron {
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.textbox-editor-chevron[data-open='true'] {
+  transform: rotate(180deg);
+}
+
+.textbox-editor-body {
+  padding: 4px 14px 14px;
+}
+
+.textbox-editor-body .control-group:last-of-type {
+  border-bottom: none;
+}
+
+.textbox-editor-remove {
+  width: 100%;
+  margin-top: 14px;
+  padding: 9px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.textbox-editor-remove:hover {
+  border-color: var(--danger);
+  color: #e2827c;
+}
+
+.add-textbox-button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.add-textbox-button:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* Preview stage -------------------------------------------------------- */
+
+.preview-pane {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 40px;
+}
+
+.preview-pane::before {
+  content: '';
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, var(--accent-dim), transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.preview-frame {
+  position: relative;
+  width: min(360px, 78vh * 0.5625);
+  aspect-ratio: 9 / 16;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid rgba(232, 163, 61, 0.35);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 30px 60px rgba(0, 0, 0, 0.5);
+}
+
+.preview-frame > div {
+  width: 100%;
+  height: 100%;
+}
+
+.preview-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .preview-frame {
+    width: min(320px, 60vh * 0.5625);
+  }
+}
