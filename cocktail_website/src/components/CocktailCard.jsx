@@ -1,31 +1,22 @@
-function CocktailCard({ id, title, ingredients, image, alt, width = 250, height = 250 }) {
+/**
+ * Favourites card – keeps the original 3D hover: the stage tips back,
+ * the glass lifts out and the ingredient slip slides in.
+ * Also triggers on keyboard focus; the accessible theme shows ingredients statically.
+ */
+export default function CocktailCard({ title, image, ingredients, focusable = true }) {
   return (
-    <div className="cocktail_card" id={id}>
-      <div className="card_bg">
-        <span className="card_title">{title}</span>
-      </div>
-      
-      <img
-        className="card_image"
-        src={image}
-        alt={alt}
-        width={width}
-        height={height}
-      />
-
-      <div className="card_ingredients">
-        <ul className="card_ingredients_list">
-          {ingredients.map((item, index) => (
-            <li key={index} className="card_ingredient_list_item">
-              {item}
-            </li>
-          ))}
-        </ul>
+    <article className="cocktail-card" tabIndex={focusable ? 0 : -1} aria-label={title}>
+      <div className="cocktail-card__stage">
+        <h3 className="cocktail-card__title">{title}</h3>
       </div>
 
-      
-    </div>
+      <img className="cocktail-card__image" src={image} alt="" width="160" height="160" loading="lazy" decoding="async" />
+
+      <ul className="cocktail-card__ingredients" aria-label={`${title} ingredients`}>
+        {ingredients.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </article>
   );
 }
-
-export default CocktailCard;

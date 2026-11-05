@@ -1,0 +1,216 @@
+/* ==========================================================================
+   ACCESSIBLE / COLOUR-BLIND THEME – behaviour overrides
+   Colours come from tokens.css. These rules change *how* things work:
+   no hover-only information, no decorative 3D, solid outlines instead of
+   shadows, underlined links and state shown by shape/weight, not hue.
+   ========================================================================== */
+
+:root[data-theme="accessible"] {
+  /* Links are always underlined (WCAG 1.4.1: don't rely on colour alone). */
+  & a:not(.btn, .brand, .nav__link, .icon-btn, .shop-tile) {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  & :focus-visible {
+    outline: 4px solid var(--focus);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 7px #000;
+  }
+
+  /* Cards: borders instead of shadows, no paper curl. */
+  & .page,
+  & .signature-card__page,
+  & .shop-tile {
+    border: 2px solid var(--line);
+  }
+
+  & .page::before,
+  & .page::after,
+  & .signature-card__page::before {
+    display: none;
+  }
+
+  & .btn {
+    box-shadow: none;
+    text-decoration: none;
+  }
+
+  & .btn--ghost {
+    border-width: 2px;
+  }
+
+  & .btn:hover,
+  & .chip:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Active nav item: thick bar + bold + marker, independent of colour. */
+  & .nav__link[aria-current]::before {
+    content: "▸";
+    margin-inline-end: var(--space-2);
+  }
+
+  & .nav__link::after {
+    height: 4px;
+  }
+
+  & .chip[aria-pressed="true"] {
+    outline: 2px solid var(--on-brand);
+    outline-offset: -5px;
+  }
+
+  & .badge {
+    background: var(--brand);
+    color: #000;
+    border-color: #000;
+  }
+
+  & .eyebrow {
+    color: var(--brand);
+  }
+
+  /* Hero: plain, steady image. */
+  & .hero__image {
+    animation: none;
+  }
+
+  & .hero__visual::before {
+    display: none;
+  }
+
+  /* Favourites: keep the carousel, but show the ingredients without hover. */
+  & .marquee {
+    padding-block: var(--space-4) var(--space-5);
+    margin-block: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  /* Card becomes a simple stacked layout: image, title, ingredient list. */
+  & .cocktail-card {
+    --card-size: 15rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    height: auto;
+    padding: var(--space-4);
+    border: 2px solid var(--line);
+    background: var(--surface);
+  }
+
+  & .cocktail-card__stage {
+    display: contents; /* its title joins the flex flow */
+  }
+
+  & .cocktail-card__image {
+    position: static;
+    order: 1;
+    align-self: center;
+    width: 8rem;
+    height: 8rem;
+    filter: none;
+  }
+
+  & .cocktail-card__title {
+    position: static;
+    order: 2;
+    color: var(--ink);
+    text-align: center;
+  }
+
+  & .cocktail-card__ingredients {
+    position: static;
+    order: 3;
+    opacity: 1;
+    visibility: visible;
+    background: var(--surface-2);
+    color: var(--ink);
+    border: 2px solid var(--line);
+    box-shadow: none;
+    font-size: var(--fs-sm);
+  }
+
+  & .cocktail-card:is(:hover, :focus-visible) :is(.cocktail-card__stage, .cocktail-card__title, .cocktail-card__image, .cocktail-card__ingredients) {
+    transform: none;
+  }
+
+  /* Signatures: no page-turn tilt. */
+  & .signature-card:hover .signature-card__page,
+  & .signature-card:hover .signature-card__media img {
+    transform: none;
+  }
+
+  & .signature-card__glass {
+    color: var(--ink);
+  }
+
+  /* Shop tiles: sharp image, solid label panel for readable text. */
+  & .shop-tile img,
+  & .shop-tile:hover img {
+    filter: none;
+    transform: none;
+  }
+
+  & .shop-tile::before {
+    display: none;
+  }
+
+  & .shop-tile__label {
+    background: #000;
+    border-top: 2px solid var(--line);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  /* Recipes: no 3D flip – faces swap in place, nothing hidden behind hover. */
+  & .recipe-card__inner,
+  & .recipe-card:hover .recipe-card__inner,
+  & .recipe-card.is-flipped .recipe-card__inner {
+    transform: none;
+  }
+
+  & .recipe-card__back {
+    position: static; /* grow to fit the text instead of scrolling inside the card */
+    transform: none;
+    display: none;
+  }
+
+  & .recipe-card.is-flipped .recipe-card__back {
+    display: flex;
+  }
+
+  & .recipe-card.is-flipped .recipe-card__front {
+    display: none;
+  }
+
+  & .recipe-card__ingredients li::before {
+    border-radius: 0; /* square bullets: visible even with low acuity */
+  }
+
+  /* Webshop */
+  & .product-card:hover {
+    transform: none;
+    border-color: var(--brand);
+  }
+
+  & .product-card__media {
+    background: #fff;
+  }
+
+  & .product-card__price,
+  & .shop-group__title i,
+  & .recipe-card__label {
+    color: var(--brand);
+  }
+
+  & .shop-toolbar {
+    position: static;
+    border-radius: var(--radius-lg);
+  }
+
+  & .skeleton {
+    animation: none;
+  }
+}

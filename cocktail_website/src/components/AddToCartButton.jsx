@@ -1,22 +1,34 @@
-import React from 'react';
+import { useEffect, useState } from "react";
+import { DIALOGS, useAuth, useCart, useDialog } from "../context/contexts";
 
-function AddToCartButton({ user, productId, type, onAdd }) {
-  const handleAddToCart = () => {
+const CONFIRM_MS = 1600;
+
+export default function AddToCartButton({ product }) {
+  const { user } = useAuth();
+  const { add } = useCart();
+  const { open } = useDialog();
+  const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    if (!added) return undefined;
+    const timer = setTimeout(() => setAdded(false), CONFIRM_MS);
+    return () => clearTimeout(timer);
+  }, [added]);
+
+  const handleClick = () => {
     if (!user) {
-      alert('Jelentkezz be a kosárhoz!');
+      open(DIALOGS.signIn, { message: "Sign in to start filling your cart." });
       return;
     }
-    
-    if (onAdd) {
-      onAdd({ id: productId, type });
-    }
+    add(product);
+    setAdded(true);
   };
 
   return (
-    <button className="add_to_cart" onClick={handleAddToCart}>
-      Add to Cart +
+    <button type="button" className={`btn btn--primary btn--block ${added ? "is-done" : ""}`} onClick={handleClick}>
+      <i className={added ? "ri-check-line" : "ri-shopping-bag-3-line"} aria-hidden="true" />
+      <span aria-live="polite">{added ? "Added" : "Add to cart"}</span>
+      <span className="visually-hidden">: {product.name}</span>
     </button>
   );
 }
-
-export default AddToCartButton;

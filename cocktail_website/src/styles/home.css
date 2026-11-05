@@ -1,0 +1,673 @@
+/* ==========================================================================
+   HOME PAGE SECTIONS
+   ========================================================================== */
+
+/* On dark bands, primary buttons switch to the light brand tone for contrast. */
+.section--band .btn--primary,
+.site-header .btn--primary {
+  --btn-bg: var(--band-brand);
+  --btn-border: var(--band-brand);
+  --btn-ink: var(--band-bg);
+}
+
+.section--band .page .btn--primary {
+  --btn-bg: var(--brand);
+  --btn-border: var(--brand);
+  --btn-ink: var(--on-brand);
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  padding-block: var(--space-6) var(--section-pad);
+  overflow: clip;
+}
+
+.hero__inner {
+  display: grid;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.hero__visual {
+  position: relative;
+  justify-self: center;
+  width: min(100%, 38rem);
+}
+
+.hero__visual::before {
+  /* soft ruby glow behind the honeycomb */
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(350 80% 55% / 0.35), transparent 70%);
+  filter: blur(40px);
+  z-index: -1;
+}
+
+.hero__image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  -webkit-mask: url("../assets/images/honeycomb.png") center / contain no-repeat;
+  mask: url("../assets/images/honeycomb.png") center / contain no-repeat;
+  filter: var(--grade-filter) drop-shadow(0 18px 30px hsl(var(--shadow-color) / 0.45));
+  animation: float 9s ease-in-out infinite;
+}
+
+.hero__content {
+  display: grid;
+  gap: var(--space-4);
+  padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+  animation: rise-in 0.8s var(--ease) both;
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-3xl);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+
+.hero__title em {
+  display: block;
+  font-style: italic;
+  color: var(--brand);
+}
+
+.hero__lead {
+  font-size: var(--fs-lg);
+  font-weight: 500;
+}
+
+.hero__body {
+  color: var(--ink-muted);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.hero__actions .btn--ghost {
+  color: var(--brand);
+}
+
+@media (min-width: 56em) {
+  .hero__inner {
+    grid-template-columns: 1.25fr 1fr;
+  }
+
+  .hero__content {
+    margin-inline-start: -18%; /* the page overlaps the honeycomb, magazine-style */
+  }
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-12px) rotate(-1deg);
+  }
+}
+
+/* ---------- Favourites: infinite marquee ---------- */
+.marquee {
+  overflow: hidden;
+  /* room for the glass lifting out of the card and the ingredient slip */
+  padding-block: 5.5rem 7rem;
+  margin-block: -3.5rem -3rem;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-dur) linear infinite;
+}
+
+.marquee__item {
+  flex: none;
+  padding-inline-end: var(--space-6); /* padding (not gap) keeps the -50% loop seamless */
+}
+
+.marquee:hover .marquee__track,
+.marquee:focus-within .marquee__track,
+.marquee.is-paused .marquee__track {
+  animation-play-state: paused;
+}
+
+.marquee__controls {
+  display: flex;
+  justify-content: center;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- Cocktail card (original 3D hover, re-skinned) ---------- */
+.cocktail-card {
+  --card-size: 17.5rem;
+  position: relative;
+  width: var(--card-size);
+  height: var(--card-size);
+  border-radius: var(--radius-xl);
+  outline-offset: 6px;
+}
+
+.cocktail-card__stage {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: radial-gradient(120% 120% at 30% 20%, var(--sunken), var(--line-soft));
+  box-shadow: inset 10px 10px 18px hsl(var(--shadow-color) / 0.22), inset -10px -10px 18px hsl(0 0% 100% / 0.55),
+    var(--shadow-md);
+  transition: transform var(--dur-slow) var(--ease), box-shadow var(--dur-slow) var(--ease);
+}
+
+.cocktail-card__title {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 1.75rem;
+  right: 1.25rem;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--text);
+  transform-origin: bottom left;
+  transition: transform var(--dur-slow) var(--ease);
+}
+
+.cocktail-card__image {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  z-index: 5;
+  width: 50%;
+  height: 50%;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 14px hsl(var(--shadow-color) / 0.35));
+  transition: transform var(--dur-slow) var(--ease);
+}
+
+.cocktail-card__ingredients {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -0.5rem;
+  z-index: 6;
+  display: grid;
+  gap: 0.15rem;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform var(--dur-slow) var(--ease), opacity var(--dur) var(--ease), visibility 0s linear var(--dur);
+}
+
+.cocktail-card__ingredients li::before {
+  content: "· ";
+  font-weight: 700;
+}
+
+.cocktail-card:is(:hover, :focus-visible) .cocktail-card__stage {
+  transform: perspective(900px) rotateX(70deg);
+  box-shadow: 12px 24px 24px hsl(var(--shadow-color) / 0.4);
+}
+
+.cocktail-card:is(:hover, :focus-visible) .cocktail-card__title {
+  transform: rotateY(-70deg) scale(2.2);
+}
+
+.cocktail-card:is(:hover, :focus-visible) .cocktail-card__image {
+  transform: translateY(-50%) scale(1.15);
+}
+
+.cocktail-card:is(:hover, :focus-visible) .cocktail-card__ingredients {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(30%);
+  transition: transform var(--dur-slow) var(--ease), opacity var(--dur) var(--ease);
+}
+
+@media (max-width: 40em) {
+  .cocktail-card {
+    --card-size: 13.5rem;
+  }
+}
+
+/* ---------- Signatures: flipbook rail ---------- */
+.signatures__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.signatures__head .section-heading {
+  margin-bottom: var(--space-5);
+}
+
+.signatures__nav {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  color: var(--brand);
+}
+
+.signatures__rail {
+  --rail-pad: max(var(--gutter), calc((100% - var(--content-w)) / 2));
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(14rem, 62vw, 18.5rem);
+  gap: var(--space-5);
+  padding: var(--space-4) var(--rail-pad) var(--space-6);
+  scroll-padding-inline: var(--rail-pad);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  perspective: 1800px;
+  scrollbar-width: thin;
+}
+
+.signatures__rail:focus-visible {
+  outline-offset: -3px;
+}
+
+.signature-card {
+  scroll-snap-align: start;
+}
+
+.signature-card__page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: var(--border-w) solid var(--line-soft);
+  border-radius: var(--radius-sm) var(--radius-lg) var(--radius-lg) var(--radius-sm);
+  background-color: var(--surface);
+  background-image: var(--paper);
+  box-shadow: var(--shadow-md);
+  transform-origin: left center;
+  transition: transform 0.7s var(--ease), box-shadow 0.7s var(--ease);
+}
+
+.signature-card__page::before {
+  /* book spine */
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: 1.25rem;
+  background: linear-gradient(90deg, hsl(var(--shadow-color) / 0.35), transparent);
+  pointer-events: none;
+}
+
+.signature-card:hover .signature-card__page {
+  transform: rotateY(-16deg);
+  box-shadow: var(--shadow-lg);
+}
+
+.signature-card__media {
+  aspect-ratio: 2 / 3;
+}
+
+.signature-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.signature-card:hover .signature-card__media img {
+  transform: scale(1.05);
+}
+
+.signature-card__caption {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.signature-card__folio {
+  position: absolute;
+  top: -1.9rem;
+  right: var(--space-4);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  box-shadow: var(--shadow-md);
+}
+
+.signature-card__name {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+}
+
+.signature-card__glass {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.signature-card__look {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.signatures__cta {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Shop teaser tiles (original blur → focus hover) ---------- */
+.shop-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: var(--space-6);
+}
+
+.shop-tile {
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  color: #fff;
+  text-decoration: none;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.shop-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--grade-filter) blur(3px);
+  transform: scale(1.06);
+}
+
+.shop-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to top, hsl(350 70% 7% / 0.9), hsl(350 70% 10% / 0.35) 55%, transparent);
+}
+
+.shop-tile:hover {
+  transform: translateY(-4px);
+}
+
+.shop-tile:hover img,
+.shop-tile:focus-visible img {
+  filter: var(--grade-filter) blur(0);
+  transform: scale(1.1);
+}
+
+.shop-tile__label {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-6);
+  text-shadow: var(--text-glow);
+}
+
+.shop-tile__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.shop-tile__blurb {
+  opacity: 0.92;
+}
+
+.shop-tile__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.shop-tile__cta i {
+  transition: transform var(--dur) var(--ease);
+}
+
+.shop-tile:hover .shop-tile__cta i {
+  transform: translateX(4px);
+}
+
+/* ---------- Recipes: flip cards ---------- */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.5rem), 1fr));
+  gap: var(--space-6) var(--space-5);
+}
+
+.recipe-card {
+  display: grid;
+  gap: var(--space-3);
+  perspective: 1400px;
+  animation: rise-in 0.6s var(--ease) both;
+}
+
+.recipe-card__inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform var(--dur-slow) var(--ease);
+}
+
+.recipe-card:not(.is-flipped):hover .recipe-card__inner {
+  transform: rotateY(-8deg); /* hint: the page wants to turn */
+}
+
+.recipe-card.is-flipped .recipe-card__inner {
+  transform: rotateY(180deg);
+}
+
+.recipe-card__face {
+  grid-area: 1 / 1;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.recipe-card__back {
+  /* sized by the front face so every card in the grid is the same height */
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-5) var(--space-6) var(--space-6);
+}
+
+.recipe-card__media {
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.recipe-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recipe-card:hover .recipe-card__media img {
+  transform: scale(1.05);
+}
+
+.recipe-card__body {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-6);
+}
+
+.recipe-card__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+}
+
+.recipe-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.recipe-card__label {
+  margin-top: var(--space-2);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.recipe-card__ingredients {
+  display: grid;
+  gap: 0.15rem;
+  font-size: var(--fs-sm);
+}
+
+.recipe-card__ingredients li {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.recipe-card__ingredients li::before {
+  content: "";
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.55em;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+.recipe-card__method {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.recipe-card__toggle {
+  justify-self: start;
+}
+
+.recipe-card--skeleton {
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  animation: none;
+}
+
+/* ---------- Contact ---------- */
+.contact {
+  display: grid;
+  gap: var(--space-7);
+  align-items: start;
+}
+
+@media (min-width: 56em) {
+  .contact {
+    grid-template-columns: 1fr 1.1fr;
+  }
+}
+
+.contact__info {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.contact__info li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.contact__info i {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  border: var(--border-w) solid hsl(0 0% 100% / 0.25);
+  border-radius: 50%;
+  color: var(--band-brand);
+  font-size: 1.2rem;
+}
+
+.contact__label {
+  display: block;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--band-muted);
+}
+
+.contact__info a {
+  text-decoration: underline;
+}
+
+.contact__form {
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+}
+
+.contact__form .btn {
+  justify-self: start;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .marquee__track {
+    animation: none;
+  }
+
+  .marquee__item--clone,
+  .marquee__controls {
+    display: none;
+  }
+
+  .hero__image {
+    animation: none;
+  }
+}

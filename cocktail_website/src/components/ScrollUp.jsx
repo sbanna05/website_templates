@@ -1,25 +1,26 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { prefersReducedMotion } from "../lib/format";
 
-function ScrollUp() {
+export default function ScrollUp() {
+  const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    const scrollUp = () => {
-      const scrollButton = document.getElementById("scroll-up");
-      if (window.scrollY > 200) { // amikor a scroll elér 200px-t
-        scrollButton.classList.add("show-scroll");
-      } else {
-        scrollButton.classList.remove("show-scroll");
-      }
-    };
-
-    window.addEventListener("scroll", scrollUp);
-    return () => window.removeEventListener("scroll", scrollUp);
+    const onScroll = () => setVisible(window.scrollY > 400);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <a href="#" className="scrollup" id="scroll-up">
-      <i className="ri-arrow-up-line"></i>
-    </a>
+    <button
+      type="button"
+      className={`scroll-up icon-btn ${visible ? "is-visible" : ""}`}
+      onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "instant" : "smooth" })}
+      aria-label="Back to top"
+      tabIndex={visible ? 0 : -1}
+      aria-hidden={!visible}
+    >
+      <i className="ri-arrow-up-line" aria-hidden="true" />
+    </button>
   );
 }
-
-export default ScrollUp;

@@ -1,0 +1,213 @@
+/* ==========================================================================
+   DESIGN TOKENS
+   Every colour, size, shadow and motion value lives here. Components only use
+   these variables, so a theme is just a different set of values.
+     light       – warm blush paper, ruby ink (default)
+     dark        – ruby-black, glowing rose
+     accessible  – neutral greys + one yellow accent: safe for protan/deutan/
+                   tritan colour blindness, AAA contrast, 125% scale, no colour grading
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---- Colour: surfaces (red-tinted neutrals) ---- */
+  --bg: hsl(14 42% 94%);
+  --surface: hsl(18 60% 98.5%);
+  --surface-2: hsl(355 46% 93%);
+  --sunken: hsl(352 32% 89%);
+  --line: hsl(350 22% 78%);
+  --line-soft: hsl(350 30% 86% / 0.7);
+
+  /* ---- Colour: text (--ink is the contextual alias components use) ---- */
+  --text: hsl(350 42% 12%);
+  --text-muted: hsl(350 16% 33%);
+  --ink: var(--text);
+  --ink-muted: var(--text-muted);
+
+  /* ---- Colour: brand (ruby) ---- */
+  --brand: hsl(350 72% 36%);
+  --brand-hover: hsl(350 78% 27%);
+  --brand-soft: hsl(352 80% 93%);
+  --on-brand: hsl(20 70% 98%);
+  --accent: hsl(36 78% 46%); /* gold leaf, decorative only */
+
+  /* ---- Colour: dark ruby bands (header, favourites, contact, footer) ---- */
+  --band-bg: hsl(350 58% 15%);
+  --band-bg-2: hsl(350 52% 21%);
+  --band-ink: hsl(18 55% 95%);
+  --band-muted: hsl(350 30% 80%);
+  --band-brand: hsl(352 90% 76%);
+  --header-bg: hsl(350 60% 13% / 0.86);
+
+  --focus: hsl(40 100% 50%);
+  --focus-ring: 0 0 0 3px var(--surface), 0 0 0 6px var(--focus);
+
+  /* ---- Depth: layered, red-tinted shadows ---- */
+  --shadow-color: 350 65% 18%;
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.1), 0 2px 6px hsl(var(--shadow-color) / 0.08);
+  --shadow-md: 0 1px 2px hsl(var(--shadow-color) / 0.08), 0 6px 16px hsl(var(--shadow-color) / 0.12),
+    0 22px 40px -18px hsl(var(--shadow-color) / 0.3);
+  --shadow-lg: 0 2px 4px hsl(var(--shadow-color) / 0.1), 0 16px 36px hsl(var(--shadow-color) / 0.18),
+    0 44px 80px -28px hsl(var(--shadow-color) / 0.45);
+  --text-glow: 0 2px 18px hsl(350 80% 10% / 0.55);
+
+  /* ---- Colour grading for photography ---- */
+  --grade-filter: saturate(1.08) contrast(1.06);
+  --grade-overlay: radial-gradient(130% 95% at 50% 30%, transparent 55%, hsl(350 60% 10% / 0.42)),
+    linear-gradient(170deg, hsl(12 95% 62% / 0.1), hsl(345 85% 28% / 0.18));
+  --grade-blend: multiply;
+  --paper: radial-gradient(120% 80% at 0% 0%, hsl(20 80% 99% / 0.9), transparent 60%),
+    radial-gradient(90% 70% at 100% 100%, hsl(350 60% 90% / 0.35), transparent 70%);
+  --page-bg: radial-gradient(1200px 600px at 85% -10%, hsl(350 70% 88% / 0.65), transparent 60%),
+    radial-gradient(900px 500px at -10% 40%, hsl(14 80% 90% / 0.6), transparent 60%);
+
+  /* ---- Typography ---- */
+  --font-display: "Playfair Display", "Iowan Old Style", Georgia, serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: clamp(1.125rem, 1.05rem + 0.35vw, 1.3rem);
+  --fs-xl: clamp(1.4rem, 1.2rem + 0.9vw, 1.85rem);
+  --fs-2xl: clamp(1.9rem, 1.4rem + 2.2vw, 3rem);
+  --fs-3xl: clamp(2.4rem, 1.5rem + 4.2vw, 4.75rem);
+  --lh: 1.6;
+  --lh-tight: 1.15;
+  --tracking-eyebrow: 0.18em;
+
+  /* ---- Space, shape, size ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --section-pad: clamp(3rem, 2rem + 4vw, 6rem);
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+  --content-w: 75rem;
+  --radius-sm: 0.5rem;
+  --radius: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+  --radius-pill: 999px;
+  --tap: 2.75rem; /* minimum touch target */
+  --border-w: 1px;
+  --header-h: 4.25rem;
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 0.18s;
+  --dur: 0.3s;
+  --dur-slow: 0.8s;
+  --marquee-dur: 45s;
+
+  /* ---- Layers ---- */
+  --z-raised: 2;
+  --z-header: 100;
+  --z-drawer: 110;
+  --z-toast: 200;
+}
+
+/* ===================== DARK ===================== */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: hsl(350 30% 7%);
+  --surface: hsl(350 26% 11%);
+  --surface-2: hsl(350 24% 15%);
+  --sunken: hsl(350 32% 5%);
+  --line: hsl(350 18% 28%);
+  --line-soft: hsl(350 20% 22% / 0.8);
+
+  --text: hsl(15 40% 93%);
+  --text-muted: hsl(350 14% 72%);
+
+  --brand: hsl(352 82% 66%);
+  --brand-hover: hsl(352 90% 74%);
+  --brand-soft: hsl(350 45% 18%);
+  --on-brand: hsl(350 60% 8%);
+  --accent: hsl(38 85% 62%);
+
+  --band-bg: hsl(350 40% 10%);
+  --band-bg-2: hsl(350 36% 14%);
+  --band-ink: hsl(15 40% 93%);
+  --band-muted: hsl(350 16% 74%);
+  --band-brand: hsl(352 90% 76%);
+  --header-bg: hsl(350 35% 6% / 0.82);
+
+  --focus: hsl(42 100% 60%);
+
+  --shadow-color: 350 80% 2%;
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.5), 0 2px 8px hsl(var(--shadow-color) / 0.35);
+  --shadow-md: 0 1px 2px hsl(var(--shadow-color) / 0.5), 0 8px 20px hsl(var(--shadow-color) / 0.45),
+    0 24px 48px -20px hsl(350 70% 25% / 0.35);
+  --shadow-lg: 0 2px 6px hsl(var(--shadow-color) / 0.6), 0 20px 44px hsl(var(--shadow-color) / 0.55),
+    0 48px 90px -30px hsl(350 80% 30% / 0.45);
+
+  --grade-overlay: radial-gradient(130% 95% at 50% 30%, transparent 50%, hsl(350 70% 4% / 0.6)),
+    linear-gradient(170deg, hsl(10 90% 55% / 0.08), hsl(345 85% 22% / 0.28));
+  --paper: radial-gradient(120% 80% at 0% 0%, hsl(350 30% 16% / 0.9), transparent 60%),
+    radial-gradient(90% 70% at 100% 100%, hsl(350 60% 20% / 0.25), transparent 70%);
+  --page-bg: radial-gradient(1200px 600px at 85% -10%, hsl(350 70% 18% / 0.55), transparent 60%),
+    radial-gradient(900px 500px at -10% 40%, hsl(14 60% 14% / 0.5), transparent 60%);
+}
+
+/* ===================== ACCESSIBLE / COLOUR-BLIND =====================
+   - Hue is never the only signal: states also change shape, weight, underline or icon.
+   - One accent (yellow) on neutral greys: luminance contrast survives every type of
+     colour-vision deficiency (red/green and blue/yellow) and greyscale.
+   - Contrast ≥ 7:1 (WCAG AAA) for text, ≥ 3:1 for borders/controls.
+   - Everything is rem-based, so the 125% root size scales text, spacing and targets.
+   ====================================================================== */
+:root[data-theme="accessible"] {
+  color-scheme: dark;
+  font-size: 125%;
+
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --surface-2: #2a2a2a;
+  --sunken: #0a0a0a;
+  --line: #9e9e9e;
+  --line-soft: #6f6f6f;
+
+  --text: #ffffff;
+  --text-muted: #e3e3e3;
+
+  --brand: #ffd23f;
+  --brand-hover: #ffe680;
+  --brand-soft: #2a2a2a;
+  --on-brand: #000000;
+  --accent: #ffd23f;
+
+  --band-bg: #000000;
+  --band-bg-2: #141414;
+  --band-ink: #ffffff;
+  --band-muted: #e3e3e3;
+  --band-brand: #ffd23f;
+  --header-bg: #000000;
+
+  --focus: #ffd23f;
+  --focus-ring: 0 0 0 3px #000, 0 0 0 6px var(--focus);
+
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --text-glow: none;
+
+  --grade-filter: none;
+  --grade-overlay: none;
+  --paper: none;
+  --page-bg: none;
+
+  --font-display: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", Verdana, system-ui, sans-serif;
+  --lh: 1.7;
+  --tracking-eyebrow: 0.08em;
+  --tap: 3rem;
+  --border-w: 2px;
+  --marquee-dur: 90s;
+}
