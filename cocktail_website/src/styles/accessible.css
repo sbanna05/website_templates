@@ -26,9 +26,54 @@
   }
 
   & .page::before,
-  & .page::after,
-  & .signature-card__page::before {
+  & .signature-card__page::before,
+  & .signature-card__media::before,
+  & .section--band::before,
+  & .btn--primary::after,
+  & .hero__aurora,
+  & .hero__scroll,
+  & .recipe-card__hint {
     display: none;
+  }
+
+  /* Cinematic extras off: steady hero, solid text, no glows. */
+  & .hero__visual,
+  & .hero__content,
+  & .hero__content > *,
+  & .hero__line > span {
+    animation: none;
+  }
+
+  & .hero__title em > span {
+    background: none;
+    color: var(--brand);
+    animation: none;
+  }
+
+  /* Content appears straight away – no scroll-reveal movement. */
+  & [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  & .modal--glass .modal__panel {
+    background-color: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  & .toast {
+    background: #000;
+    border: 2px solid var(--line);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  & .toast__timer {
+    height: 4px;
+    background: var(--brand);
   }
 
   & .btn {
@@ -164,25 +209,28 @@
     padding: var(--space-4) var(--space-5);
   }
 
-  /* Recipes: no 3D flip – faces swap in place, nothing hidden behind hover. */
+  /* Recipes: no 3D flip, nothing hidden behind hover – photo and recipe
+     are stacked and always visible. */
   & .recipe-card__inner,
   & .recipe-card:hover .recipe-card__inner,
+  & .recipe-card:has(.recipe-card__back:focus-visible) .recipe-card__inner,
   & .recipe-card.is-flipped .recipe-card__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
     transform: none;
+    transform-style: flat;
+  }
+
+  & .recipe-card__face {
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
   }
 
   & .recipe-card__back {
     position: static; /* grow to fit the text instead of scrolling inside the card */
     transform: none;
-    display: none;
-  }
-
-  & .recipe-card.is-flipped .recipe-card__back {
-    display: flex;
-  }
-
-  & .recipe-card.is-flipped .recipe-card__front {
-    display: none;
+    overflow: visible;
   }
 
   & .recipe-card__ingredients li::before {

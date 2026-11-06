@@ -24,7 +24,7 @@ export default function Recipes() {
           id="recipes-title"
           eyebrow="Learn the classics"
           title="Look up our cocktail recipes"
-          lead="Turn the page on any card for the ingredients and method."
+          lead="Hover, tap or tab to a card and the page turns to the ingredients and method."
         />
 
         {status === "error" && (
@@ -36,14 +36,14 @@ export default function Recipes() {
         <ul className="recipe-grid">
           {status === "loading"
             ? CLASSIC_IDS.map((id) => <RecipeSkeleton key={id} />)
-            : data.map((cocktail) => (
-                <li key={cocktail.id}>
+            : data.map((cocktail, index) => (
+                <li key={cocktail.id} data-reveal style={{ "--i": index % 4 }}>
                   <RecipeCard {...cocktail} />
                 </li>
               ))}
         </ul>
 
-        <p className="credit">
+        <p className="credit" data-reveal="fade">
           Recipes &amp; photos:{" "}
           <a href="https://www.thecocktaildb.com" target="_blank" rel="noopener noreferrer">
             TheCocktailDB

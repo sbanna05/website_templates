@@ -1,7 +1,3 @@
-/* ==========================================================================
-   WEBSHOP PAGE
-   ========================================================================== */
-
 .webshop {
   padding-top: var(--space-6);
 }
@@ -45,10 +41,6 @@
   border-radius: var(--radius-pill);
 }
 
-.shop-toolbar::after {
-  display: none; /* no page curl on the pill */
-}
-
 .search {
   position: relative;
   flex: 1 1 16rem;
@@ -77,7 +69,28 @@
 @media (max-width: 40em) {
   .shop-toolbar {
     position: static;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    padding: var(--space-3);
     border-radius: var(--radius-lg);
+  }
+
+  /* one swipeable row of filters instead of wrapping lines */
+  .chips {
+    flex-wrap: nowrap;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip {
+    flex: none;
+    scroll-snap-align: start;
   }
 }
 
@@ -98,7 +111,15 @@
 }
 
 .shop-group__title i {
-  color: var(--brand);
+  display: inline-grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: var(--gold-gradient);
+  color: hsl(350 60% 12%);
+  font-size: 1.3rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .product-grid {
@@ -117,13 +138,13 @@
   grid-template-rows: auto 1fr auto;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-3) var(--space-4) var(--space-4);
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
-  animation: rise-in 0.5s var(--ease) both;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 
 .product-card:hover {
   transform: translateY(-6px) rotate(-0.4deg);
-  box-shadow: var(--shadow-lg);
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  box-shadow: var(--shadow-lg), 0 0 32px var(--gold-soft);
 }
 
 .product-card__media {
@@ -132,7 +153,6 @@
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: var(--radius);
-  /* product shots are cut out on white – keep a light "studio" well in every theme */
   background: radial-gradient(circle at 50% 40%, #fff 40%, hsl(350 30% 93%));
 }
 
@@ -170,4 +190,120 @@
   font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--brand);
+}
+
+@media (max-width: 40em) {
+  .shop-group {
+    margin-bottom: var(--space-7);
+  }
+
+  .shop-group__title {
+    font-size: var(--fs-xl);
+    margin-bottom: var(--space-3);
+  }
+
+  .shop-group__title i {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 1.05rem;
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .product-card {
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    grid-template-rows: none;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+    border-radius: var(--radius);
+  }
+
+  .product-card::before {
+    display: none;
+  }
+
+  .product-card:hover {
+    transform: none;
+  }
+
+  .product-card__media {
+    width: 4.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .product-card__media img {
+    width: 86%;
+    height: 86%;
+  }
+
+  .product-card__body {
+    gap: 0;
+    padding: 0;
+  }
+
+  .product-card__name {
+    font-size: var(--fs-md);
+    line-height: 1.25;
+  }
+
+  .product-card__detail {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+  }
+
+  .product-card__price {
+    margin-top: 0.15rem;
+    font-size: var(--fs-md);
+  }
+
+  .product-card .btn--block {
+    width: var(--tap);
+    height: var(--tap);
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .product-card .btn--block i {
+    font-size: 1.3rem;
+  }
+
+  .product-card .btn__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ---------- Tablets: denser grid, smaller product shots ---------- */
+@media (min-width: 40.01em) and (max-width: 64em) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    gap: var(--space-4);
+  }
+
+  .product-card {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-2) var(--space-3) var(--space-3);
+  }
+
+  .product-card__name {
+    font-size: var(--fs-md);
+  }
+
+  .product-card .btn {
+    min-height: calc(var(--tap) - 0.25rem);
+    padding-inline: var(--space-3);
+  }
 }

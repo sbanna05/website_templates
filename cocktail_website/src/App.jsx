@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ScrollUp from "./components/ScrollUp";
 import ScrollManager from "./components/ScrollManager";
+import RevealManager from "./components/RevealManager";
 import Dialogs from "./components/dialogs/Dialogs";
 import Home from "./pages/Home";
 import Webshop from "./pages/Webshop";
@@ -15,6 +16,7 @@ export default function App() {
     <AppProviders>
       <HashRouter>
         <ScrollManager />
+        <RevealManager />
         <Header />
         <main id="main" tabIndex={-1}>
           <Routes>

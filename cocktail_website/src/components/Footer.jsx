@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="site-footer__inner container">
-        <div className="site-footer__brand">
+        <div className="site-footer__brand" data-reveal>
           <Link to={toSection(SECTIONS.home)} className="brand">
             <i className="ri-goblet-fill brand__mark" aria-hidden="true" />
             Cocktail<em>Heaven</em>
@@ -14,12 +14,12 @@ export default function Footer() {
           <p>Mixing flavours, crafting experiences.</p>
         </div>
 
-        <nav aria-label="Footer">
+        <nav aria-label="Footer" data-reveal style={{ "--i": 1 }}>
           <h2 className="site-footer__heading">Explore</h2>
           <NavLinks className="site-footer__links" linkClassName="site-footer__link" />
         </nav>
 
-        <div>
+        <div data-reveal style={{ "--i": 2 }}>
           <h2 className="site-footer__heading">Follow us</h2>
           <ul className="site-footer__social">
             {SOCIAL_LINKS.map(({ label, href, icon }) => (

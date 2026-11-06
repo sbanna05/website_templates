@@ -32,8 +32,8 @@ export default function Contact() {
             lead="Questions, private events or feedback – we read every message."
           />
           <ul className="contact__info">
-            {CONTACT_INFO.map(({ icon, label, value, href }) => (
-              <li key={label}>
+            {CONTACT_INFO.map(({ icon, label, value, href }, index) => (
+              <li key={label} data-reveal="left" style={{ "--i": index + 1 }}>
                 <i className={icon} aria-hidden="true" />
                 <span>
                   <span className="contact__label">{label}</span>
@@ -44,7 +44,7 @@ export default function Contact() {
           </ul>
         </div>
 
-        <form className="form contact__form page" onSubmit={handleSubmit} onChange={() => sent && setSent(false)}>
+        <form className="form contact__form page" data-reveal="right" onSubmit={handleSubmit} onChange={() => sent && setSent(false)}>
           <Field label="Your name" name="name" autoComplete="name" required defaultValue={user?.username ?? ""} key={user?.username} />
           <Field label="Email" name="email" type="email" autoComplete="email" required />
           <Field label="Phone (optional)" name="phone" type="tel" autoComplete="tel" />

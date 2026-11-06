@@ -47,7 +47,7 @@ export default function CartDialog() {
 
   if (ordered) {
     return (
-      <Modal title="Order placed" onClose={close} size="sm">
+      <Modal title="Order placed" onClose={close} size="sm" variant="glass">
         <p className="empty-state" role="status">
           <i className="ri-checkbox-circle-line" aria-hidden="true" />
           Thank you! Your order is on its way. <span className="hint">(Demo – nothing was charged.)</span>
@@ -60,7 +60,7 @@ export default function CartDialog() {
   }
 
   return (
-    <Modal title="Your cart" onClose={close}>
+    <Modal title="Your cart" onClose={close} variant="glass">
       {items.length === 0 ? (
         <div className="empty-state">
           <i className="ri-shopping-bag-3-line" aria-hidden="true" />

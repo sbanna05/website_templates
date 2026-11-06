@@ -27,7 +27,7 @@ export default function Signatures() {
           title="Signature drinks"
           lead="Our own creations – the recipes stay behind the bar. Order them in person or pick up the bottles to experiment at home."
         />
-        <div className="signatures__nav">
+        <div className="signatures__nav" data-reveal="fade">
           <button type="button" className="icon-btn icon-btn--outline" onClick={() => turnPage(-1)} aria-label="Previous page" aria-controls="signature-rail">
             <i className="ri-arrow-left-line" aria-hidden="true" />
           </button>
@@ -39,7 +39,7 @@ export default function Signatures() {
 
       <ul id="signature-rail" ref={railRef} className="signatures__rail" tabIndex={0} aria-label="Signature drinks, scroll horizontally">
         {SIGNATURES.map((drink, index) => (
-          <li key={drink.id} className="signature-card">
+          <li key={drink.id} className="signature-card" data-reveal="right" style={{ "--i": index }}>
             <figure className="signature-card__page">
               <div className="graded signature-card__media">
                 <SmartImage src={drink.image} alt={`${drink.name}: ${drink.look}`} width="600" height="900" />
@@ -59,7 +59,7 @@ export default function Signatures() {
         ))}
       </ul>
 
-      <div className="container signatures__cta">
+      <div className="container signatures__cta" data-reveal>
         <Link to={ROUTES.shop} className="btn btn--primary">
           <i className="ri-store-2-line" aria-hidden="true" /> Stock your home bar
         </Link>

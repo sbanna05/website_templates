@@ -16,8 +16,8 @@ export default function ShopTeaser() {
         <SectionHeading id="shop-teaser-title" eyebrow="The bottle shop" title="Discover our latest items" />
 
         <ul className="shop-tiles">
-          {TILES.map((tile) => (
-            <li key={tile.id}>
+          {TILES.map((tile, index) => (
+            <li key={tile.id} data-reveal="zoom" style={{ "--i": index }}>
               <Link to={toSection(tile.id, ROUTES.shop)} className="shop-tile graded">
                 <img src={tile.image} alt="" width="600" height="450" loading="lazy" decoding="async" />
                 <span className="shop-tile__label">

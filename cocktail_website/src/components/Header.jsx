@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import NavLinks from "./NavLinks";
 import ThemeToggle from "./ThemeToggle";
-import { NAV_LINKS, ROUTES, SECTIONS, toSection } from "../config/navigation";
+import { NAV_LINKS, ROUTES, SECTIONS, SOCIAL_LINKS, toSection } from "../config/navigation";
 import { DIALOGS, useAuth, useCart, useDialog } from "../context/contexts";
 import { useActiveSection } from "../hooks/useActiveSection";
 
@@ -49,6 +49,7 @@ function AccountActions() {
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
   const activeSection = useActiveSection(SPY_IDS, pathname === ROUTES.home);
   const closeMenu = () => setMenuOpen(false);
@@ -61,6 +62,28 @@ export default function Header() {
     return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
+  // While the drawer is open the page behind it stays put; it closes itself
+  // if the window grows into the desktop layout.
+  useEffect(() => {
+    document.documentElement.classList.toggle("nav-open", menuOpen);
+    if (!menuOpen) return undefined;
+    const desktop = window.matchMedia("(min-width: 64em)");
+    const onChange = (event) => event.matches && !document.documentElement.matches('[data-theme="accessible"]') && setMenuOpen(false);
+    desktop.addEventListener("change", onChange);
+    return () => {
+      desktop.removeEventListener("change", onChange);
+      document.documentElement.classList.remove("nav-open");
+    };
+  }, [menuOpen]);
+
+  // Gold hairline + deeper shadow once content scrolls under the header.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const skipToContent = () => {
     const main = document.getElementById("main");
     main?.focus();
@@ -68,7 +91,7 @@ export default function Header() {
   };
 
   return (
-    <header className="site-header">
+    <header className={`site-header ${scrolled ? "is-scrolled" : ""}`}>
       <button type="button" className="skip-link" onClick={skipToContent}>
         Skip to content
       </button>
@@ -89,6 +112,18 @@ export default function Header() {
             activeSection={activeSection}
             onNavigate={closeMenu}
           />
+          <div className="nav__footer">
+            <p className="nav__tagline">Mixing flavours, crafting experiences.</p>
+            <ul className="nav__social">
+              {SOCIAL_LINKS.map(({ label, href, icon }) => (
+                <li key={label}>
+                  <a href={href} className="icon-btn" target="_blank" rel="noopener noreferrer" aria-label={`${label} (opens in a new tab)`}>
+                    <i className={icon} aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </nav>
 
         <div className="header-actions">

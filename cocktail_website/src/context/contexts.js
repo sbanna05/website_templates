@@ -20,3 +20,4 @@ export const [ThemeContext, useTheme] = createSafeContext("Theme");
 export const [AuthContext, useAuth] = createSafeContext("Auth");
 export const [CartContext, useCart] = createSafeContext("Cart");
 export const [DialogContext, useDialog] = createSafeContext("Dialog");
+export const [ToastContext, useToast] = createSafeContext("Toast");

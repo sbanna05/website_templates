@@ -1,15 +1,27 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import SmartImage from "./SmartImage";
 
-/** Flipbook-style recipe card: photo on the front, method on the back. */
+const canHover = () => typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches;
+
+/**
+ * Flipbook-style recipe card: photo on the front, method on the back.
+ *  - mouse:    the page turns on hover
+ *  - keyboard: Tab lands on the recipe side, which turns the page; arrow keys scroll it if it is long
+ *  - touch:    tap to turn, tap again to turn back
+ *  - screen readers get both sides in reading order (nothing is aria-hidden)
+ *  - accessible theme: no flip, photo and recipe are stacked (accessible.css)
+ */
 export default function RecipeCard({ name, image, imageLarge, glass, category, ingredients, instructions }) {
   const [flipped, setFlipped] = useState(false);
-  const backId = useId();
+
+  const handleClick = () => {
+    if (!canHover()) setFlipped((value) => !value);
+  };
 
   return (
-    <article className={`recipe-card ${flipped ? "is-flipped" : ""}`}>
+    <article className={`recipe-card ${flipped ? "is-flipped" : ""}`} onClick={handleClick}>
       <div className="recipe-card__inner">
-        <div className="recipe-card__face recipe-card__front page" aria-hidden={flipped}>
+        <div className="recipe-card__face recipe-card__front page">
           <div className="graded recipe-card__media">
             <SmartImage
               src={image}
@@ -19,6 +31,9 @@ export default function RecipeCard({ name, image, imageLarge, glass, category, i
               width="350"
               height="350"
             />
+            <span className="recipe-card__hint" aria-hidden="true">
+              <i className="ri-book-open-line" /> Recipe
+            </span>
           </div>
           <div className="recipe-card__body">
             <p className="eyebrow">{category}</p>
@@ -29,8 +44,10 @@ export default function RecipeCard({ name, image, imageLarge, glass, category, i
           </div>
         </div>
 
-        <div id={backId} className="recipe-card__face recipe-card__back page" aria-hidden={!flipped}>
-          <h3 className="recipe-card__title">{name}</h3>
+        <div className="recipe-card__face recipe-card__back page scroll-area" tabIndex={0} role="group" aria-label={`${name} recipe`}>
+          <p className="recipe-card__title" aria-hidden="true">
+            {name}
+          </p>
           <h4 className="recipe-card__label">Ingredients</h4>
           <ul className="recipe-card__ingredients">
             {ingredients.map((item) => (
@@ -41,18 +58,6 @@ export default function RecipeCard({ name, image, imageLarge, glass, category, i
           <p className="recipe-card__method">{instructions}</p>
         </div>
       </div>
-
-      <button
-        type="button"
-        className="btn btn--sm recipe-card__toggle"
-        aria-expanded={flipped}
-        aria-controls={backId}
-        onClick={() => setFlipped((value) => !value)}
-      >
-        <i className={flipped ? "ri-arrow-go-back-line" : "ri-book-open-line"} aria-hidden="true" />
-        {flipped ? "Back to photo" : "Show recipe"}
-        <span className="visually-hidden"> for {name}</span>
-      </button>
     </article>
   );
 }

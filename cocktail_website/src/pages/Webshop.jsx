@@ -67,8 +67,8 @@ export default function Webshop() {
             </h2>
             {group.products.length ? (
               <ul className="product-grid">
-                {group.products.map((product) => (
-                  <li key={product.id}>
+                {group.products.map((product, index) => (
+                  <li key={product.id} data-reveal style={{ "--i": index % 4 }}>
                     <ProductCard product={product} />
                   </li>
                 ))}

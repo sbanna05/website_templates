@@ -10,6 +10,12 @@ import Contact from "./home/Contact";
 function Hero() {
   return (
     <section id={SECTIONS.home} className="hero section" aria-labelledby="hero-title">
+      <div className="hero__aurora" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+
       <div className="hero__inner container">
         <div className="hero__visual">
           <img src={homeImage} alt="A cocktail being poured at the bar" className="hero__image" width="900" height="900" fetchPriority="high" />
@@ -18,7 +24,12 @@ function Hero() {
         <div className="hero__content page">
           <p className="eyebrow">Bar &amp; bottle shop · est. 2025</p>
           <h1 id="hero-title" className="hero__title">
-            Welcome to <em>Cocktail Heaven</em>
+            <span className="hero__line">
+              <span>Welcome to</span>
+            </span>{" "}
+            <em className="hero__line">
+              <span>Cocktail Heaven</span>
+            </em>
           </h1>
           <p className="hero__lead">Mixing flavours, crafting experiences. Discover our finest cocktails &amp; essentials.</p>
 
@@ -37,6 +48,8 @@ function Hero() {
           </p>
         </div>
       </div>
+
+      <span className="hero__scroll" aria-hidden="true" />
     </section>
   );
 }

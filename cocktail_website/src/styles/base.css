@@ -38,6 +38,16 @@ body {
   transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-header) - 2);
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 main {
   flex: 1;
   outline: none;
@@ -123,12 +133,37 @@ p {
 }
 
 .section--band {
+  isolation: isolate;
+  overflow-x: clip;
   background: linear-gradient(180deg, var(--band-bg), var(--band-bg-2));
   color: var(--band-ink);
   --ink: var(--band-ink);
   --ink-muted: var(--band-muted);
   --brand-text: var(--band-brand);
   box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.06), inset 0 -1px 0 hsl(0 0% 0% / 0.3);
+}
+
+/* Slow-drifting ruby + gold light behind dark bands. */
+.section--band::before {
+  content: "";
+  position: absolute;
+  inset: 0 -12%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(38rem 24rem at 12% 0%, hsl(350 85% 45% / 0.32), transparent 70%),
+    radial-gradient(32rem 20rem at 88% 100%, hsl(40 95% 55% / 0.14), transparent 70%);
+  animation: band-drift 22s ease-in-out infinite alternate;
+}
+
+/* Gold hairline on the top edge. */
+.section--band::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--band-gold) 50%, transparent);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .section--sunken {
@@ -155,6 +190,46 @@ p {
   letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
   color: var(--brand-text, var(--brand));
+}
+
+/* Gold rules either side of a section eyebrow; they draw in on reveal. */
+.section-heading .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  justify-self: center;
+}
+
+.section-heading--start .eyebrow {
+  justify-self: start;
+}
+
+.section-heading .eyebrow::before,
+.section-heading .eyebrow::after {
+  content: "";
+  width: 2.25rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold));
+  transition: transform 0.9s var(--ease) 0.35s;
+}
+
+.section-heading .eyebrow::before {
+  transform-origin: right;
+}
+
+.section-heading .eyebrow::after {
+  background: linear-gradient(270deg, transparent, var(--gold));
+  transform-origin: left;
+}
+
+.section-heading--start .eyebrow::before {
+  display: none;
+}
+
+.can-reveal .section-heading:not(.is-revealed) .eyebrow::before,
+.can-reveal .section-heading:not(.is-revealed) .eyebrow::after {
+  transform: scaleX(0);
 }
 
 .section-title {
@@ -189,6 +264,9 @@ p {
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   box-shadow: var(--shadow-sm);
   transition: transform var(--dur-fast) var(--ease), background-color var(--dur) var(--ease),
     color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
@@ -217,6 +295,24 @@ p {
 .btn--primary:hover {
   --btn-bg: var(--brand-hover);
   --btn-border: var(--brand-hover);
+  box-shadow: var(--shadow-md), 0 0 0 3px var(--gold-soft);
+}
+
+/* A streak of light crosses primary buttons on hover. */
+.btn--primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, hsl(45 100% 90% / 0.45) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.75s var(--ease);
+  pointer-events: none;
+}
+
+.btn--primary:hover::after,
+.btn--primary:focus-visible::after {
+  transform: translateX(120%);
 }
 
 .btn--ghost {
@@ -451,8 +547,7 @@ textarea.field__control {
 }
 
 /* ---------- Flipbook "page" surface ----------
-   Paper texture + layered shadow + a spine on the left + a page-curl
-   on the bottom-right corner that lifts on hover/focus. */
+   Paper texture + layered shadow + a spine on the left. */
 .page {
   /* a page is always "paper", even when it sits on a dark band */
   --ink: var(--text);
@@ -477,27 +572,6 @@ textarea.field__control {
   background: linear-gradient(90deg, hsl(var(--shadow-color) / 0.16), hsl(var(--shadow-color) / 0.04) 55%, transparent);
   pointer-events: none;
   z-index: 1;
-}
-
-.page::after {
-  content: "";
-  position: absolute;
-  right: -1px;
-  bottom: -1px;
-  width: 0;
-  height: 0;
-  border-radius: 0 0 var(--radius-lg) 0;
-  background: linear-gradient(315deg, var(--bg) 47%, hsl(var(--shadow-color) / 0.3) 50%, var(--surface-2) 53%, var(--surface) 85%);
-  box-shadow: -4px -4px 8px hsl(var(--shadow-color) / 0.12);
-  transition: width var(--dur) var(--ease), height var(--dur) var(--ease);
-  pointer-events: none;
-  z-index: 3;
-}
-
-.page:hover::after,
-.page:focus-within::after {
-  width: 2.25rem;
-  height: 2.25rem;
 }
 
 /* ---------- Colour grading for photos ---------- */
@@ -554,6 +628,47 @@ textarea.field__control {
   width: 55%;
 }
 
+/* ---------- Scroll reveal ----------
+   RevealManager adds .can-reveal to <html> (only when IntersectionObserver
+   exists) and .is-revealed to each [data-reveal] element as it enters the
+   viewport. Without JS support everything is simply visible.
+   Stagger with style="--i: n". */
+.can-reveal [data-reveal] {
+  transition: opacity var(--reveal-dur) var(--ease), transform var(--reveal-dur) var(--ease),
+    filter var(--reveal-dur) var(--ease);
+  transition-delay: min(calc(var(--i, 0) * 90ms), 540ms);
+}
+
+.can-reveal [data-reveal]:not(.is-revealed) {
+  opacity: 0;
+  transform: translate3d(0, 2.25rem, 0);
+}
+
+.can-reveal [data-reveal="fade"]:not(.is-revealed) {
+  transform: none;
+}
+
+.can-reveal [data-reveal="zoom"]:not(.is-revealed) {
+  transform: scale(0.94);
+  filter: blur(6px);
+}
+
+.can-reveal [data-reveal="left"]:not(.is-revealed) {
+  transform: translate3d(-2.5rem, 0, 0);
+}
+
+.can-reveal [data-reveal="right"]:not(.is-revealed) {
+  transform: translate3d(2.5rem, 0, 0);
+}
+
+/* ---------- Inner scroll areas: scrollbar only when the content needs it ---------- */
+.scroll-area {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--brand) 55%, transparent) transparent;
+}
+
 /* ---------- Keyframes ---------- */
 @keyframes shimmer {
   to {
@@ -564,6 +679,12 @@ textarea.field__control {
 @keyframes pop {
   50% {
     transform: scale(1.06);
+  }
+}
+
+@keyframes band-drift {
+  to {
+    transform: translateX(8%);
   }
 }
 
@@ -591,5 +712,16 @@ html {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .can-reveal [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  .section--band::before {
+    animation: none !important;
   }
 }

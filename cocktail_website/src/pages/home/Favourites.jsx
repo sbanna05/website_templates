@@ -14,7 +14,7 @@ export default function Favourites() {
         <SectionHeading id="favourites-title" eyebrow="On the menu" title="This week's favourites" lead="Hover or focus a card to see what goes in the glass." />
       </div>
 
-      <div className={`marquee ${paused ? "is-paused" : ""}`}>
+      <div className={`marquee ${paused ? "is-paused" : ""}`} data-reveal="fade">
         <ul className="marquee__track">
           {FAVOURITES.map((cocktail) => (
             <li key={cocktail.id} className="marquee__item">
@@ -29,7 +29,7 @@ export default function Favourites() {
         </ul>
       </div>
 
-      <div className="container marquee__controls">
+      <div className="container marquee__controls" data-reveal="fade">
         <button type="button" className="btn btn--ghost btn--sm" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>
           <i className={paused ? "ri-play-line" : "ri-pause-line"} aria-hidden="true" />
           {paused ? "Play carousel" : "Pause carousel"}

@@ -4,7 +4,7 @@ import { useEffect, useId, useRef } from "react";
  * Accessible modal built on the native <dialog> element:
  * focus trapping, Escape-to-close and top-layer rendering come for free.
  */
-export default function Modal({ title, onClose, children, size = "md" }) {
+export default function Modal({ title, onClose, children, size = "md", variant }) {
   const ref = useRef(null);
   const titleId = useId();
 
@@ -20,12 +20,12 @@ export default function Modal({ title, onClose, children, size = "md" }) {
   return (
     <dialog
       ref={ref}
-      className={`modal modal--${size}`}
+      className={`modal modal--${size} ${variant ? `modal--${variant}` : ""}`}
       aria-labelledby={titleId}
       onClose={onClose}
       onClick={handleBackdropClick}
     >
-      <div className="modal__panel page">
+      <div className="modal__panel page scroll-area">
         <header className="modal__header">
           <h2 id={titleId} className="modal__title">
             {title}
