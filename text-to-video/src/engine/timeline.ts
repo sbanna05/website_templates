@@ -1,7 +1,7 @@
 import { MIN_CLIP_DURATION, MIN_PROJECT_DURATION } from '../config/defaults';
 import { clamp } from '../lib/math';
 import { createId } from '../lib/id';
-import type { Asset, Clip, MediaClip, Project, Track } from '../types/project';
+import type { Asset, Clip, MediaClip, Project, TextClip, Track } from '../types/project';
 
 /* Pure timeline maths — no React, no DOM. Shared by the UI, preview and export. */
 
@@ -142,4 +142,36 @@ export function activeClipsInRenderOrder(project: Project, time: number): Clip[]
   return project.clips
     .filter((c) => !hidden.has(c.trackId) && c.kind !== 'audio' && isClipActive(c, time))
     .sort((a, b) => (order.get(a.trackId) ?? 0) - (order.get(b.trackId) ?? 0));
+}
+
+/**
+ * Lyric-video style: breaks one text clip into a clip per word (or line),
+ * each starting on the next beat and lasting `beatsPer` beats. Style and
+ * animation carry over, so every piece animates in on its own beat.
+ */
+export function splitTextToBeats(
+  clip: TextClip,
+  beats: readonly number[],
+  unit: 'word' | 'line',
+  beatsPer: number,
+): TextClip[] {
+  const pieces =
+    unit === 'line'
+      ? clip.text.split('\n').map((l) => l.trim()).filter(Boolean)
+      : clip.text.split(/\s+/).filter(Boolean);
+  const upcoming = beats.filter((b) => b >= clip.start - 0.05);
+  if (pieces.length < 2 || upcoming.length < 2) return [clip];
+  const period = upcoming[upcoming.length - 1] - upcoming[upcoming.length - 2];
+  const beatAt = (i: number) => upcoming[i] ?? upcoming[upcoming.length - 1] + (i - upcoming.length + 1) * period;
+  return pieces.map((text, i) => {
+    const start = beatAt(i * beatsPer);
+    return {
+      ...clip,
+      id: i === 0 ? clip.id : createId('clip'),
+      text,
+      start,
+      duration: Math.max(MIN_CLIP_DURATION, beatAt((i + 1) * beatsPer) - start),
+      animation: { ...clip.animation, revealOnBeat: false },
+    };
+  });
 }

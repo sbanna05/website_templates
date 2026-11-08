@@ -37,6 +37,12 @@ const PATHS = {
   sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
   film: 'M4 3h16v18H4zM8 3v18M16 3v18M4 8h4M4 13h4M4 18h4M16 8h4M16 13h4M16 18h4',
   chevron: 'm6 9 6 6 6-6',
+  flag: 'M5 21V4M5 4h11l-2 4 2 4H5',
+  crop: 'M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14',
+  sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  'flip-h': 'M12 3v18M8 7 3 12l5 5zM16 7l5 5-5 5z',
+  'flip-v': 'M3 12h18M7 8l5-5 5 5zM7 16l5 5 5-5z',
+  merge: 'M6 3v6a6 6 0 0 0 6 6h0a6 6 0 0 1 6 6M18 3v6a6 6 0 0 1-6 6M12 15v6',
 } as const;
 
 export type IconName = keyof typeof PATHS;

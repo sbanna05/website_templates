@@ -6,6 +6,7 @@ import { Section } from '../ui/Section';
 import { Slider } from '../ui/Slider';
 import { Toggle } from '../ui/Toggle';
 import { Waveform } from '../timeline/Waveform';
+import { BeatMatchPanel } from './BeatMatchPanel';
 import { SpeedSection } from './SpeedSection';
 import { useClipPatch } from './useClipPatch';
 
@@ -59,6 +60,8 @@ export function AudioInspector({ clip }: { clip: AudioClip }) {
           <Slider label="Fade out" value={clip.fadeOut} min={0} max={5} step={0.05} defaultValue={0} format={secs} onChange={(fadeOut) => patch({ fadeOut }, 'fadeOut')} />
         </div>
       </Section>
+
+      <BeatMatchPanel preferredBaseId={clip.id} />
 
       <Section title="Beat sync" icon="beat">
         <div className="stat-row">

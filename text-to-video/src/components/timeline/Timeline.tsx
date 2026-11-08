@@ -5,6 +5,7 @@ import { usePlayback } from '../../store/playbackStore';
 import { useUi } from '../../store/uiStore';
 import { BeatMarkers } from './BeatMarkers';
 import { HEADER_WIDTH, RULER_HEIGHT, TAIL_SECONDS, TRACK_HEIGHT } from './constants';
+import { MarkerFlags, MarkerLines } from './Markers';
 import { Playhead } from './Playhead';
 import { TimeRuler } from './TimeRuler';
 import { TimelineToolbar } from './TimelineToolbar';
@@ -68,6 +69,7 @@ export function Timeline() {
             </div>
             <div className="timeline__ruler-wrap">
               <TimeRuler width={contentWidth} pxPerSecond={pxPerSecond} duration={span} />
+              <MarkerFlags markers={project.markers} beats={beats} pxPerSecond={pxPerSecond} />
               <Playhead part="knob" pxPerSecond={pxPerSecond} />
             </div>
           </div>
@@ -88,8 +90,9 @@ export function Timeline() {
                 />
               </div>
             ))}
-            <div className="timeline__beats" style={{ left: HEADER_WIDTH }}>
+            <div className="timeline__beats" style={{ left: HEADER_WIDTH, height: lanesHeight }}>
               <BeatMarkers beats={beats} manual={project.manualBeats} pxPerSecond={pxPerSecond} width={contentWidth} height={lanesHeight} />
+              <MarkerLines markers={project.markers} pxPerSecond={pxPerSecond} />
             </div>
           </div>
 

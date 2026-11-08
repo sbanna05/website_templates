@@ -1,13 +1,15 @@
 import { NEUTRAL_FILTERS } from '../../config/defaults';
-import { BEAT_FX_OPTIONS, MOTION_OPTIONS, PITCH_RANGE, TRANSITION_OPTIONS } from '../../config/options';
+import { BEAT_FX_OPTIONS, PITCH_RANGE, TRANSITION_OPTIONS } from '../../config/options';
 import { FILTER_PRESETS } from '../../config/presets';
 import { withSpeed } from '../../engine/timeline';
 import { useEditor } from '../../store/editorStore';
 import type { Filters, Transition, VisualClip } from '../../types/project';
 import { Section } from '../ui/Section';
-import { Segmented } from '../ui/Segmented';
 import { Select } from '../ui/Select';
 import { Slider } from '../ui/Slider';
+import { CropEditor } from './CropEditor';
+import { LightsSection } from './LightsSection';
+import { MotionSection } from './MotionSection';
 import { SpeedSection } from './SpeedSection';
 import { TransformSection } from './TransformSection';
 import { useClipPatch } from './useClipPatch';
@@ -37,24 +39,8 @@ export function VisualInspector({ clip }: { clip: VisualClip }) {
       )}
 
       <TransformSection transform={clip.transform} scaleLabel="Zoom" onChange={(transform, key) => patch({ transform }, key)} />
-      <Section title="Framing" icon="image" defaultOpen={false}>
-        <Segmented
-          label="Fit"
-          value={clip.fit}
-          options={[
-            { label: 'Fill frame', value: 'cover' },
-            { label: 'Fit inside', value: 'contain' },
-          ]}
-          onChange={(fit) => patch({ fit })}
-        />
-      </Section>
-
-      <Section title="Motion" icon="sparkle">
-        <Select label="Camera move" value={clip.motion} options={MOTION_OPTIONS} onChange={(motion) => patch({ motion })} />
-        {clip.motion !== 'none' && (
-          <Slider label="Amount" value={clip.motionAmount} min={0.02} max={0.5} step={0.01} defaultValue={0.12} format={pct} onChange={(v) => patch({ motionAmount: v }, 'motionAmount')} />
-        )}
-      </Section>
+      {asset && <CropEditor clip={clip} asset={asset} patch={patch} />}
+      <MotionSection clip={clip} patch={patch} />
 
       <Section title="Beat effects" icon="beat">
         <Select label="On every beat" value={clip.beatFx.type} options={BEAT_FX_OPTIONS} onChange={(type) => patch((c) => ({ beatFx: { ...c.beatFx, type } }))} />
@@ -88,8 +74,13 @@ export function VisualInspector({ clip }: { clip: VisualClip }) {
         <Slider label="Saturation" value={clip.filters.saturation} min={0} max={2} defaultValue={NEUTRAL_FILTERS.saturation} format={pct} onChange={setFilter('saturation')} />
         <Slider label="Hue shift" value={clip.filters.hue} min={-180} max={180} step={1} defaultValue={0} format={(v) => `${v}°`} onChange={setFilter('hue')} />
         <Slider label="Blur" value={clip.filters.blur} min={0} max={20} step={0.1} defaultValue={0} format={(v) => `${v.toFixed(1)}px`} onChange={setFilter('blur')} />
+        <Slider label="Temperature" value={clip.filters.temperature} min={-1} max={1} defaultValue={0} format={(v) => (v === 0 ? 'Neutral' : v > 0 ? `Warm ${pct(v)}` : `Cool ${pct(-v)}`)} onChange={setFilter('temperature')} />
+        <Slider label="Tint" value={clip.filters.tint} min={-1} max={1} defaultValue={0} format={(v) => (v === 0 ? 'Neutral' : v > 0 ? `Magenta ${pct(v)}` : `Green ${pct(-v)}`)} onChange={setFilter('tint')} />
+        <Slider label="Fade" value={clip.filters.fade} min={0} max={1} defaultValue={0} format={pct} onChange={setFilter('fade')} />
         <Slider label="Vignette" value={clip.filters.vignette} min={0} max={1} defaultValue={0} format={pct} onChange={setFilter('vignette')} />
       </Section>
+
+      <LightsSection clip={clip} patch={patch} />
 
       {asset?.hasAudio && (
         <Section title="Clip audio" icon="volume" defaultOpen={false}>

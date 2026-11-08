@@ -1,7 +1,9 @@
 import { getEase } from '../lib/easing';
 import { clamp, seededRandom } from '../lib/math';
-import type { BeatFxType, MotionType, VisualClip } from '../types/project';
+import type { BeatFxType, Filters, VisualClip } from '../types/project';
 import { beatStateAt, type BeatState } from './beats';
+import { drawLights } from './drawLights';
+import { MOTIONS, pacedProgress } from './motion';
 import { TRANSITIONS, type TransitionPose } from './transitions';
 import { IDENTITY_POSE, combinePoses, type Hitbox, type Pose, type RenderEnv } from './types';
 
@@ -19,16 +21,6 @@ export function sourceSize(source: CanvasImageSource): { width: number; height: 
     height: typeof sized.height === 'number' ? sized.height : sized.height.baseVal.value,
   };
 }
-
-/** Ken Burns style motion over the clip's lifetime; `m` runs 0 → 1. */
-const MOTIONS: Record<MotionType, (m: number, amount: number, width: number) => Partial<Pose>> = {
-  none: () => ({}),
-  'zoom-in': (m, a) => ({ scale: 1 + a * m }),
-  'zoom-out': (m, a) => ({ scale: 1 + a * (1 - m) }),
-  'pan-left': (m, a, w) => ({ scale: 1 + a, dx: (0.5 - m) * a * w }),
-  'pan-right': (m, a, w) => ({ scale: 1 + a, dx: (m - 0.5) * a * w }),
-  drift: (m, a, w) => ({ scale: 1 + a * 0.6, dx: Math.sin(m * Math.PI * 2) * a * w * 0.15, rotation: Math.sin(m * Math.PI) * a * 0.1 }),
-};
 
 interface BeatFxPose extends Partial<Pose> {
   flash?: number;
@@ -50,24 +42,49 @@ const BEAT_FX: Record<BeatFxType, (b: BeatState, intensity: number, width: numbe
 
 const FLASH_COLOR = '#eef2f3';
 
+/** Colour grading that canvas `filter` can't express: white balance and a matte fade. */
+function gradeImage(ctx: Ctx, filters: Filters, x: number, y: number, w: number, h: number): void {
+  const overlays: [GlobalCompositeOperation, string, number][] = [];
+  if (filters.temperature) {
+    overlays.push(['soft-light', filters.temperature > 0 ? '#f0a352' : '#4f8fd6', Math.abs(filters.temperature) * 0.6]);
+  }
+  if (filters.tint) overlays.push(['soft-light', filters.tint > 0 ? '#c25bb4' : '#4fae62', Math.abs(filters.tint) * 0.45]);
+  if (filters.fade) overlays.push(['lighten', '#3a4247', filters.fade * 0.9]);
+  for (const [mode, color, alpha] of overlays) {
+    ctx.save();
+    ctx.globalCompositeOperation = mode;
+    ctx.globalAlpha *= clamp(alpha, 0, 1);
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+  }
+}
+
 export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSource, env: RenderEnv): Hitbox {
   const { width: W, height: H } = env;
   const local = env.time - clip.start;
-  const { transform, filters } = clip;
+  const { transform, filters, crop } = clip;
 
-  // Fit the source into the frame.
+  // Crop (normalised source rect), then fit the cropped region into the frame.
   const src = sourceSize(source);
-  const ratio = clip.fit === 'cover' ? Math.max(W / src.width, H / src.height) : Math.min(W / src.width, H / src.height);
-  const drawW = src.width * ratio;
-  const drawH = src.height * ratio;
+  const sx = crop.x * src.width;
+  const sy = crop.y * src.height;
+  const sw = Math.max(1, crop.width * src.width);
+  const sh = Math.max(1, crop.height * src.height);
+  const ratio = clip.fit === 'cover' ? Math.max(W / sw, H / sh) : Math.min(W / sw, H / sh);
+  const drawW = sw * ratio;
+  const drawH = sh * ratio;
 
-  const motion = MOTIONS[clip.motion](clamp(local / clip.duration, 0, 1), clip.motionAmount, W);
+  const paced = pacedProgress(clip.motionCurve, local, clip.duration, clip.start, env.beats);
+  const motion = MOTIONS[clip.motion](paced, clip.motionAmount, W, H, env.time);
   const inProgress = clip.transitionIn.duration > 0 ? clamp(local / clip.transitionIn.duration, 0, 1) : 1;
-  const outProgress = clip.transitionOut.duration > 0 ? clamp((clip.duration - local) / clip.transitionOut.duration, 0, 1) : 1;
+  const outProgress =
+    clip.transitionOut.duration > 0 ? clamp((clip.duration - local) / clip.transitionOut.duration, 0, 1) : 1;
   const ease = getEase('power3.out');
   const tin: TransitionPose = TRANSITIONS[clip.transitionIn.type](ease(inProgress), W, H);
   const tout: TransitionPose = TRANSITIONS[clip.transitionOut.type](ease(outProgress), W, H);
-  const beat = BEAT_FX[clip.beatFx.type](beatStateAt(env.beats, env.time), clip.beatFx.intensity, W);
+  const beatState = beatStateAt(env.beats, env.time);
+  const beat = BEAT_FX[clip.beatFx.type](beatState, clip.beatFx.intensity, W);
 
   const pose = combinePoses(IDENTITY_POSE, motion, tin, tout, beat);
   const brightness = filters.brightness * (beat.brightness ?? 1);
@@ -82,7 +99,7 @@ export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSo
   ctx.globalAlpha = opacity;
   ctx.translate(cx, cy);
   ctx.rotate(rotation);
-  ctx.scale(scale, scale);
+  ctx.scale(scale * pose.scaleX * (clip.flipX ? -1 : 1), scale * pose.scaleY * (clip.flipY ? -1 : 1));
   ctx.filter = [
     `brightness(${brightness})`,
     `contrast(${filters.contrast})`,
@@ -90,7 +107,12 @@ export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSo
     filters.hue ? `hue-rotate(${filters.hue}deg)` : '',
     blur > 0.2 ? `blur(${blur}px)` : '',
   ].join(' ');
-  ctx.drawImage(source, -drawW / 2, -drawH / 2, drawW, drawH);
+  const x = -drawW / 2;
+  const y = -drawH / 2;
+  ctx.drawImage(source, sx, sy, sw, sh, x, y, drawW, drawH);
+  ctx.filter = 'none';
+  gradeImage(ctx, filters, x, y, drawW, drawH);
+  drawLights(ctx, clip.lights, { x, y, width: drawW, height: drawH, source, sx, sy, sw, sh }, beatState.pulse);
   ctx.restore();
 
   if (filters.vignette > 0) {
@@ -110,5 +132,12 @@ export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSo
     ctx.restore();
   }
 
-  return { clipId: clip.id, cx, cy, width: drawW * scale, height: drawH * scale, rotation };
+  return {
+    clipId: clip.id,
+    cx,
+    cy,
+    width: drawW * scale * Math.abs(pose.scaleX),
+    height: drawH * scale * Math.abs(pose.scaleY),
+    rotation,
+  };
 }

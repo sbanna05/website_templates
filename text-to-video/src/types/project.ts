@@ -5,7 +5,7 @@
  * `media/mediaRegistry.ts`, keyed by `Asset.id`.
  */
 
-export type AspectRatio = '9:16' | '16:9' | '1:1' | '4:5';
+export type AspectRatio = '9:16' | '16:9' | '1:1' | '4:5' | '3:4';
 
 export type AssetKind = 'image' | 'video' | 'audio';
 
@@ -67,14 +67,72 @@ export type TransitionType =
   | 'blur'
   | 'flash'
   | 'spin'
-  | 'whip';
+  | 'whip'
+  | 'slide-down'
+  | 'turn-left'
+  | 'turn-right'
+  | 'squeeze-h'
+  | 'squeeze-v'
+  | 'zoom-spin';
 
 export interface Transition {
   type: TransitionType;
   duration: number;
 }
 
-export type MotionType = 'none' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'drift';
+export type MotionType =
+  | 'none'
+  | 'zoom-in'
+  | 'zoom-out'
+  | 'zoom-in-short'
+  | 'zoom-out-short'
+  | 'pan-left'
+  | 'pan-right'
+  | 'pan-up'
+  | 'pan-down'
+  | 'turn-left'
+  | 'turn-right'
+  | 'swing'
+  | 'spiral'
+  | 'handheld'
+  | 'drift';
+
+/** How the camera move is paced across the clip — CapCut-style velocity. */
+export type MotionCurve = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'fast-middle' | 'slow-middle' | 'on-beat';
+
+/** Normalised source rectangle (0–1 of the media's width/height). */
+export interface Crop {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export type LightType = 'glow' | 'lamp' | 'eclipse' | 'flare' | 'leak' | 'beam';
+
+/** A light painted on top of a photo/video, Lightroom-style. Position is relative to the image (0–1). */
+export interface LightEffect {
+  id: string;
+  type: LightType;
+  x: number;
+  y: number;
+  /** Radius as a fraction of the image's shorter side. */
+  size: number;
+  /** 0–1. */
+  intensity: number;
+  color: string;
+  /** Degrees — direction of beams, leaks and flare streaks. */
+  angle: number;
+  /** Brightens on every beat. */
+  pulseOnBeat: boolean;
+}
+
+export interface Marker {
+  id: string;
+  time: number;
+  label: string;
+  color: string;
+}
 
 export type BeatFxType = 'none' | 'zoom-pulse' | 'flash' | 'shake' | 'blur-pulse' | 'brightness' | 'tilt';
 
@@ -91,6 +149,12 @@ export interface Filters {
   hue: number;
   blur: number;
   vignette: number;
+  /** -1 (cool) … 1 (warm). */
+  temperature: number;
+  /** -1 (green) … 1 (magenta). */
+  tint: number;
+  /** 0–1, lifts the blacks for a matte look. */
+  fade: number;
 }
 
 interface ClipBase {
@@ -112,10 +176,15 @@ export interface VisualClip extends ClipBase {
   /** Semitones, applied to the clip's own audio. */
   pitch: number;
   fit: 'cover' | 'contain';
+  crop: Crop;
+  flipX: boolean;
+  flipY: boolean;
   transform: Transform;
   motion: MotionType;
   motionAmount: number;
+  motionCurve: MotionCurve;
   filters: Filters;
+  lights: LightEffect[];
   transitionIn: Transition;
   transitionOut: Transition;
   beatFx: BeatFx;
@@ -152,11 +221,28 @@ export type TextInAnimation =
   | 'rotate-in'
   | 'stretch'
   | 'glitch-in'
-  | 'karaoke';
+  | 'karaoke'
+  | 'slide-left'
+  | 'slide-right'
+  | 'flip'
+  | 'zoom-out'
+  | 'spin'
+  | 'swing';
 
 export type TextOutAnimation = 'none' | 'fade' | 'pop' | 'slide-up' | 'slide-down' | 'blur-out' | 'shrink';
 
-export type TextLoopAnimation = 'none' | 'beat-pulse' | 'beat-shake' | 'wave' | 'float' | 'flicker' | 'jitter' | 'breathe';
+export type TextLoopAnimation =
+  | 'none'
+  | 'beat-pulse'
+  | 'beat-shake'
+  | 'beat-bounce'
+  | 'beat-flash'
+  | 'beat-color'
+  | 'wave'
+  | 'float'
+  | 'flicker'
+  | 'jitter'
+  | 'breathe';
 
 export interface TextStyle {
   fontFamily: string;
@@ -216,5 +302,7 @@ export interface Project {
   clips: Clip[];
   /** Hand-tapped beat markers, timeline seconds. */
   manualBeats: number[];
+  /** Named marks (TikTok-style), usable as snap points and cut points. */
+  markers: Marker[];
   snapToBeats: boolean;
 }

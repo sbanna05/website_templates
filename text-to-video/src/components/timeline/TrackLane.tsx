@@ -33,7 +33,8 @@ export function TrackLane({ track, clips, assets, selectedClipId, pxPerSecond, b
     const rect = event.currentTarget.getBoundingClientRect();
     const raw = Math.max(0, (event.clientX - rect.left) / pxPerSecond);
     const edges = clips.flatMap((c) => [c.start, c.start + c.duration]);
-    const start = snapValue(raw, [0, ...edges, ...beats], SNAP_PX / pxPerSecond);
+    const marks = useEditor.getState().project.markers.map((m) => m.time);
+    const start = snapValue(raw, [0, ...edges, ...marks, ...beats], SNAP_PX / pxPerSecond);
     useEditor.getState().addAssetToTimeline(asset.id, { trackId: track.id, start });
   };
 

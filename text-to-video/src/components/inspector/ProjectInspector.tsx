@@ -4,6 +4,8 @@ import { ColorField } from '../ui/ColorField';
 import { Section } from '../ui/Section';
 import { Toggle } from '../ui/Toggle';
 import { Button } from '../ui/Button';
+import { BeatMatchPanel } from './BeatMatchPanel';
+import { MarksSection } from './MarksSection';
 
 export function ProjectInspector() {
   const project = useEditor((s) => s.project);
@@ -30,6 +32,8 @@ export function ProjectInspector() {
           </Button>
         )}
       </Section>
+      <MarksSection />
+      <BeatMatchPanel />
       <Section title="Keyboard shortcuts" icon="sliders" defaultOpen={false}>
         <dl className="shortcuts">
           {SHORTCUTS.map(([keys, action]) => (

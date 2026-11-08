@@ -3,6 +3,7 @@ import { audioBufferCache } from '../audio/audioBufferCache';
 import { dsp } from '../audio/dspClient';
 import {
   DEFAULT_STILL_DURATION,
+  MARKER_COLORS,
   createAudioClip,
   createEmptyProject,
   createTextClip,
@@ -10,12 +11,13 @@ import {
   createVisualClip,
 } from '../config/defaults';
 import { applyTextPreset, type TextPreset } from '../config/presets';
-import { clipEnd, splitClip, syncTrackToBeats, timelineBeats, trackEnd } from '../engine/timeline';
+import { matchBeats, type BeatMatchOptions } from '../engine/beatMatch';
+import { clipEnd, splitClip, splitTextToBeats, syncTrackToBeats, timelineBeats, trackEnd } from '../engine/timeline';
 import { createId } from '../lib/id';
 import { kindOf, loadAsset } from '../media/assetLoader';
 import { mediaRegistry } from '../media/mediaRegistry';
 import { monoForAnalysis } from '../media/waveform';
-import type { Asset, AspectRatio, Clip, Project, Track, TrackKind } from '../types/project';
+import type { Asset, AspectRatio, Clip, Marker, Project, Track, TrackKind } from '../types/project';
 import { toast } from './toastStore';
 
 const HISTORY_LIMIT = 100;
@@ -23,6 +25,12 @@ const HISTORY_LIMIT = 100;
 const COALESCE_MS = 700;
 
 type Recipe = (project: Project) => Project;
+
+/** What "Sync cuts" lines clips up with: the detected/tapped beats or your own marks. */
+export type SyncSource = 'beats' | 'marks';
+
+/** Two edits closer than this count as the same point. */
+const SAME_POINT = 0.02;
 
 interface EditorState {
   project: Project;
@@ -58,7 +66,14 @@ interface EditorState {
   addManualBeat: (time: number) => void;
   clearManualBeats: () => void;
   toggleSnap: () => void;
-  syncToBeats: (trackId: string, beatsPerClip: number) => void;
+  syncToBeats: (trackId: string, beatsPerClip: number, source?: SyncSource) => void;
+  splitTextOnBeats: (clipId: string, unit: 'word' | 'line', beatsPer: number) => void;
+  matchBeats: (options: BeatMatchOptions) => void;
+
+  addMarker: (time: number) => void;
+  updateMarker: (markerId: string, patch: Partial<Marker>, coalesceKey?: string) => void;
+  removeMarker: (markerId: string) => void;
+  clearMarkers: () => void;
 }
 
 const mapClips = (project: Project, fn: (clip: Clip) => Clip): Project => ({ ...project, clips: project.clips.map(fn) });
@@ -255,16 +270,70 @@ export const useEditor = create<EditorState>((set, get) => {
     clearManualBeats: () => get().commit((p) => ({ ...p, manualBeats: [] })),
     toggleSnap: () => get().commit((p) => ({ ...p, snapToBeats: !p.snapToBeats })),
 
-    syncToBeats: (trackId, beatsPerClip) => {
+    syncToBeats: (trackId, beatsPerClip, source = 'beats') => {
       const { project, assets } = get();
-      const beats = timelineBeats(project, assets);
-      if (beats.length < 2) {
-        toast('Add music (or tap beats with B) to sync cuts to the beat', 'error');
+      const points =
+        source === 'marks' ? project.markers.map((m) => m.time).sort((a, b) => a - b) : timelineBeats(project, assets);
+      if (points.length < 2) {
+        toast(
+          source === 'marks'
+            ? 'Add at least two marks (M) to cut on them'
+            : 'Add music (or tap beats with B) to sync cuts to the beat',
+          'error',
+        );
         return;
       }
-      get().commit((p) => ({ ...p, clips: syncTrackToBeats(p, assets, trackId, beats, beatsPerClip) }));
-      toast(`Cuts synced — every ${beatsPerClip} beat${beatsPerClip > 1 ? 's' : ''}`, 'success');
+      get().commit((p) => ({ ...p, clips: syncTrackToBeats(p, assets, trackId, points, beatsPerClip) }));
+      const what = source === 'marks' ? 'mark' : 'beat';
+      toast(`Synced — every ${beatsPerClip} ${what}${beatsPerClip > 1 ? 's' : ''}`, 'success');
     },
+
+    splitTextOnBeats: (clipId, unit, beatsPer) => {
+      const { project, assets } = get();
+      const clip = project.clips.find((c) => c.id === clipId);
+      if (clip?.kind !== 'text') return;
+      const pieces = splitTextToBeats(clip, timelineBeats(project, assets), unit, beatsPer);
+      if (pieces.length < 2) {
+        toast('Needs music with beats and at least two words or lines', 'error');
+        return;
+      }
+      get().commit((p) => ({ ...p, clips: p.clips.flatMap((c) => (c.id === clipId ? pieces : [c])) }));
+      toast(`Split into ${pieces.length} beat-synced ${unit === 'word' ? 'words' : 'lines'}`, 'success');
+    },
+
+    matchBeats: (options) => {
+      const { assets } = get();
+      let summary = { changed: 0, target: 0 };
+      get().commit((p) => {
+        const result = matchBeats(p, assets, options);
+        summary = result;
+        return result.changed === 0 ? p : { ...p, clips: result.clips };
+      });
+      if (summary.changed === 0) toast('Songs already share a tempo — nothing to change');
+      else toast(`Matched ${summary.changed} song${summary.changed > 1 ? 's' : ''} to ${Math.round(summary.target)} BPM`, 'success');
+    },
+
+    addMarker: (time) => {
+      const { markers } = get().project;
+      if (markers.some((m) => Math.abs(m.time - time) < SAME_POINT)) return;
+      const marker: Marker = {
+        id: createId('mark'),
+        time,
+        label: `Mark ${markers.length + 1}`,
+        color: MARKER_COLORS[markers.length % MARKER_COLORS.length],
+      };
+      get().commit((p) => ({ ...p, markers: [...p.markers, marker].sort((a, b) => a.time - b.time) }));
+    },
+    updateMarker: (markerId, patch, coalesceKey) =>
+      get().commit(
+        (p) => ({
+          ...p,
+          markers: p.markers.map((m) => (m.id === markerId ? { ...m, ...patch } : m)).sort((a, b) => a.time - b.time),
+        }),
+        coalesceKey ? `${markerId}:${coalesceKey}` : undefined,
+      ),
+    removeMarker: (markerId) => get().commit((p) => ({ ...p, markers: p.markers.filter((m) => m.id !== markerId) })),
+    clearMarkers: () => get().commit((p) => ({ ...p, markers: [] })),
   };
 });
 

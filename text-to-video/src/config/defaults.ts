@@ -2,6 +2,9 @@ import { createId } from '../lib/id';
 import type {
   Asset,
   AudioClip,
+  Crop,
+  LightEffect,
+  LightType,
   Filters,
   Project,
   TextAnimation,
@@ -27,7 +30,37 @@ export const NEUTRAL_FILTERS: Filters = {
   hue: 0,
   blur: 0,
   vignette: 0,
+  temperature: 0,
+  tint: 0,
+  fade: 0,
 };
+
+export const FULL_CROP: Crop = { x: 0, y: 0, width: 1, height: 1 };
+
+export const MARKER_COLORS = ['#c4a070', '#77a68e', '#6797b8', '#c0736a', '#98a8b2'] as const;
+
+export function createLight(type: LightType): LightEffect {
+  const presets: Record<LightType, Partial<LightEffect>> = {
+    glow: { size: 0.6, intensity: 0.45, color: '#f2e6d4' },
+    lamp: { x: 0.3, y: 0.25, size: 0.55, intensity: 0.6, color: '#f0c98e' },
+    eclipse: { size: 0.28, intensity: 0.75, color: '#f4e2c0' },
+    flare: { x: 0.78, y: 0.2, size: 0.35, intensity: 0.7, color: '#f6dcae', angle: -25 },
+    leak: { x: 0, y: 0.2, size: 0.8, intensity: 0.5, color: '#e0a273', angle: 20 },
+    beam: { x: 0.2, y: 0, size: 0.18, intensity: 0.45, color: '#e9eef0', angle: 65 },
+  };
+  return {
+    id: createId('light'),
+    type,
+    x: 0.5,
+    y: 0.5,
+    size: 0.4,
+    intensity: 0.6,
+    color: '#f2e6d4',
+    angle: 0,
+    pulseOnBeat: false,
+    ...presets[type],
+  };
+}
 
 export const DEFAULT_TEXT_STYLE: TextStyle = {
   fontFamily: 'Montserrat',
@@ -79,10 +112,15 @@ export function createVisualClip(asset: Asset, trackId: string, start: number): 
     volume: 1,
     pitch: 0,
     fit: 'cover',
+    crop: { ...FULL_CROP },
+    flipX: false,
+    flipY: false,
     transform: { ...DEFAULT_TRANSFORM },
     motion: asset.kind === 'image' ? 'zoom-in' : 'none',
     motionAmount: 0.12,
+    motionCurve: 'ease-in-out',
     filters: { ...NEUTRAL_FILTERS },
+    lights: [],
     transitionIn: { type: 'none', duration: 0.35 },
     transitionOut: { type: 'none', duration: 0.35 },
     beatFx: { type: 'none', intensity: 0.5 },
@@ -140,6 +178,7 @@ export function createEmptyProject(): Project {
       }),
     ],
     manualBeats: [],
+    markers: [],
     snapToBeats: true,
   };
 }

@@ -41,7 +41,7 @@ export const ClipItem = memo(function ClipItem({ clip, asset, track, selected, p
       mode,
       pointerX: event.clientX,
       origin: clip,
-      candidates: [0, usePlayback.getState().time, ...edges, ...(project.snapToBeats ? beats : [])],
+      candidates: [0, usePlayback.getState().time, ...edges, ...project.markers.map((m) => m.time), ...(project.snapToBeats ? beats : [])],
       gesture: `${mode}-${performance.now()}`,
     };
   };

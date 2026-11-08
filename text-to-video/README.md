@@ -11,7 +11,7 @@ MVM-style edits where cuts, zooms, flashes and words all land on the beat. Every
 device, from importing to the finished **MP4**. Nothing is uploaded.
 
 ```bash
-npm install
+npm install        # run again whenever package.json changes (e.g. after pulling)
 npm run dev        # http://localhost:5173
 ```
 
@@ -26,16 +26,28 @@ npm run dev        # http://localhost:5173
   You can add as many tracks as you like.
 - **Drag to move** (including to another track of the same kind), **trim** with the edge handles,
   **split** (`S`), **duplicate**, **delete**, **undo/redo**. Slider drags count as a single undo step.
-- **Snapping** to the playhead, other clip edges and **beat markers**.
+- **Snapping** to the playhead, other clip edges, **beat markers** and **marks**.
+- **Marks** (`M`, or the flag next to Split): TikTok-style named points on the ruler. Click a flag to jump,
+  drag it to move (it snaps to beats), right-click to delete. Rename and recolour them in the project panel.
 - Timeline zoom with the slider, `+`/`−` or Ctrl/⌘ + scroll. The view follows the playhead during playback.
 - Mute, hide, lock and rename tracks.
 
 ### Beat sync (MVM editing)
 - **Automatic BPM and beat-grid detection** for every music file. It runs in a Web Worker, using onset
   flux, autocorrelation tempo estimation and grid phase alignment.
-- **Sync cuts**: re-time every clip on a track so each cut lands every 1, 2, 4 or 8 beats.
+- **Sync cuts / Sync text**: re-time every clip on the selected track (video *or* text) so each cut lands
+  every 1, 2, 4 or 8 **beats**, or on your **marks** instead.
+- **Beat match (auto beat merge)** for two or more songs with different tempos:
+  - *Follow base*: pick the song that keeps its tempo; the others speed up or slow down to fit it.
+  - *Meet halfway*: every song moves to a shared tempo in between.
+  - *Custom BPM*: every song moves to a tempo you type.
+  - Songs pair at the nearest octave (a 70 BPM song fits 140 BPM at its natural speed). Pitch, volume and
+    fades are kept, downbeats can be aligned to the base grid, and cuts or text that sat on a beat move with
+    that beat. A slowed-down song stops where the next song on its track begins. One undo restores everything.
 - **Beat FX** on any visual clip: zoom pulse, flash, shake, blur pulse, exposure or tilt, with adjustable intensity.
-- **Text that reveals on the beat**, plus beat-pulse and beat-shake loop effects.
+- **Text synced to music**: reveal word by word on the beat; move with the beat (pulse, shake, bounce, flash,
+  colour swap); or **lyric mode**, which splits a text into one clip per word or line, each starting on its
+  own beat.
 - **Tap tempo**: press `B` (or *Tap beat*) to add your own markers. A grid offset nudges detection.
 - A live beat light and BPM readout in the transport bar.
 
@@ -45,8 +57,8 @@ npm run dev        # http://localhost:5173
 - Fill, outline, shadow, TikTok-style **box/pill backgrounds**, letter spacing, line height, wrap width,
   alignment, uppercase and italic.
 - **Entrance animations** per word, letter or line: fade, pop, typewriter, slide, blur-in, bounce, drop,
-  rotate, stretch, glitch-in and **karaoke** highlight. Exits: fade, pop, slide, blur-out and shrink.
-  Loops: wave, float, breathe, flicker and jitter.
+  rotate, stretch, glitch-in, slide left/right, flip, zoom out, spin, swing and **karaoke** highlight.
+  Exits: fade, pop, slide, blur-out and shrink. Loops: wave, float, breathe, flicker, jitter and five beat loops.
 - Stagger and duration controls, plus **GSAP easing curves** (overshoot, elastic, bounce, expo…).
 - **8 presets** (Bold caption, MVM impact, Cinematic title, Karaoke, Typewriter, Comic, Handwritten, Glitch).
 
@@ -55,9 +67,20 @@ npm run dev        # http://localhost:5173
   timeline clips carry speed badges, and clip length rescales automatically.
 - **Pitch** from −12 to +12 semitones, **independent of speed**. Time-stretching uses WSOLA via SoundTouch
   in a worker, so 2× doesn't sound like a chipmunk.
-- **Zoom/scale, position, rotation and opacity**, plus Ken Burns motion (zoom in/out, pan, drift).
-- **Transitions** in and out: fade, zoom punch, zoom out, slides, blur, flash, spin and whip pan.
-- **Colour**: brightness, contrast, saturation, hue, blur, vignette, and 8 filter presets.
+- **Zoom/scale, position, rotation and opacity**.
+- **Crop & framing**: drag a crop box on the photo, resize from the corners, aspect presets (Free, Original,
+  Frame, 1:1, 4:5, 9:16, 16:9), rule-of-thirds grid, flip horizontal/vertical, fill or show-all.
+- **Motion** (14 camera moves): long and short zoom in/out, pan left/right/up/down, slide-turn left/right,
+  swing, spiral, handheld and drift, with an amount up to **100%**.
+- **Pace (velocity)**: linear, ease in, ease out, smooth, rush (fastest in the middle), hang (slow in the
+  middle) or **on beat** (the move steps forward on every beat).
+- **Transitions** in and out: fade, zoom punch, zoom out, slides (←→↑↓), slide-turn, squeeze ↔/↕, zoom spin,
+  blur, flash, spin and whip pan.
+- **Colour**: brightness, contrast, saturation, hue, **temperature, tint, fade**, blur, vignette, and 10
+  filter presets (incl. Golden hour and Teal night).
+- **Light effects** painted onto the photo or video itself: glow (bloom), lamp (spotlight), **eclipse**
+  (dark disc with a glowing corona), sun flare, light leak and beam. Each has position, size, intensity,
+  colour, angle and an optional pulse on the beat, and follows the image as it moves and zooms.
 - Volume and fades per clip. Video clips keep their own audio, which can be pitched too.
 
 ### Preview and export
@@ -73,6 +96,7 @@ npm run dev        # http://localhost:5173
 | `←` `→` | Step one frame (`Shift`: 1 s) |
 | `S` | Split at the playhead |
 | `B` | Tap a beat marker |
+| `M` | Add a mark at the playhead |
 | `T` | Add text at the playhead |
 | `Del` | Delete the selected clip |
 | `Ctrl D` | Duplicate |
@@ -94,7 +118,10 @@ src/
 ├─ config/                 Defaults/factories, fonts, presets, option lists, canvas sizes
 ├─ engine/                 Pure, framework-free rendering + timeline maths
 │  ├─ renderFrame.ts       Draw a frame, return hitboxes for on-canvas selection
-│  ├─ drawVisual.ts        Fit, Ken Burns, transitions, beat FX, filters
+│  ├─ drawVisual.ts        Crop, fit, transitions, beat FX, filters, colour grading
+│  ├─ motion.ts            Camera moves + pace (velocity) curves, incl. on-beat stepping
+│  ├─ drawLights.ts        Strategy table for light effects (glow, lamp, eclipse, flare…)
+│  ├─ beatMatch.ts         Tempo matching across songs (octave folding, phase align, edit remap)
 │  ├─ drawText.ts          Per-unit text animation + backgrounds
 │  ├─ textLayout.ts        Word wrap and per-word/letter layout (cached)
 │  ├─ textAnimations.ts    Strategy tables for in / out / loop animations
