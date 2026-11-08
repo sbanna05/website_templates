@@ -1,0 +1,107 @@
+/*
+ * Design tokens — a deep ink / steel-blue / sage palette. Saturation is kept
+ * deliberately low so media stays the hero; depth comes from glass, layered
+ * shadows and inset highlights rather than glow.
+ */
+:root {
+  /* Ink (neutrals, blue-black) */
+  --ink-1000: #070a0c;
+  --ink-950: #0b0f12;
+  --ink-900: #10161b;
+  --ink-850: #141c22;
+  --ink-800: #1a242c;
+  --ink-700: #243039;
+  --ink-600: #33424d;
+  --ink-500: #4a5b67;
+  --ink-400: #6f818d;
+  --ink-300: #98a8b2;
+  --ink-200: #c3cfd6;
+  --ink-100: #e2e9ed;
+  --ink-50: #f2f6f7;
+
+  /* Steel blue */
+  --steel-700: #24405a;
+  --steel-600: #2f5675;
+  --steel-500: #46789b;
+  --steel-400: #6797b8;
+  --steel-300: #98bdd5;
+  --steel-200: #c5dbe8;
+
+  /* Sage / moss green */
+  --sage-700: #2c4d3e;
+  --sage-600: #3c6653;
+  --sage-500: #55876f;
+  --sage-400: #77a68e;
+  --sage-300: #a3c8b4;
+  --sage-200: #cfe3d8;
+
+  /* Teal slate (audio) */
+  --tide-600: #2f5a5c;
+  --tide-500: #437a7b;
+  --tide-400: #66a0a0;
+
+  /* Semantic */
+  --bg: var(--ink-950);
+  --surface: rgba(20, 28, 34, 0.62);
+  --surface-strong: rgba(26, 36, 44, 0.82);
+  --surface-sunken: rgba(7, 10, 12, 0.45);
+  --border: rgba(194, 214, 226, 0.08);
+  --border-strong: rgba(194, 214, 226, 0.16);
+  --text: var(--ink-50);
+  --text-muted: var(--ink-300);
+  --text-faint: var(--ink-400);
+  --accent: var(--steel-400);
+  --accent-strong: var(--steel-500);
+  --accent-soft: rgba(103, 151, 184, 0.16);
+  --positive: var(--sage-400);
+  --positive-soft: rgba(119, 166, 142, 0.16);
+  --warning: #c4a070;
+  --danger: #c0736a;
+  --danger-soft: rgba(192, 115, 106, 0.14);
+
+  --clip-visual: linear-gradient(180deg, var(--steel-500), var(--steel-700));
+  --clip-text: linear-gradient(180deg, var(--sage-500), var(--sage-700));
+  --clip-audio: linear-gradient(180deg, var(--tide-500), var(--tide-600));
+
+  /* Glass recipe */
+  --glass-blur: blur(22px) saturate(140%);
+  --glass-bg: linear-gradient(160deg, rgba(36, 48, 57, 0.55), rgba(16, 22, 27, 0.6));
+
+  /* Elevation: outer depth + inner highlight */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-md: 0 8px 24px -6px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-lg: 0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 6px 18px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --inset-well: inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --inset-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+
+  /* Shape & rhythm */
+  --radius-xs: 6px;
+  --radius-sm: 9px;
+  --radius-md: 13px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 28px;
+
+  --font-ui: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --text-xs: 11px;
+  --text-sm: 12.5px;
+  --text-md: 14px;
+  --text-lg: 17px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 140ms;
+  --duration-med: 260ms;
+
+  --topbar-h: 60px;
+  --timeline-h: 300px;
+  --panel-w: 300px;
+  --inspector-w: 330px;
+}

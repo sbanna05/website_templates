@@ -1,50 +1,191 @@
-# 🎬 Text-to-Video Generator
+# Cadence Studio: a beat-synced video editor in the browser
 
-![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-![Remotion](https://img.shields.io/badge/Remotion-black?style=for-the-badge&logo=remotion)
-![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React_19-10161b?style=for-the-badge&logo=react&logoColor=98bdd5)
+![TypeScript](https://img.shields.io/badge/TypeScript_strict-10161b?style=for-the-badge&logo=typescript&logoColor=98bdd5)
+![Vite](https://img.shields.io/badge/Vite-10161b?style=for-the-badge&logo=vite&logoColor=a3c8b4)
+![GSAP](https://img.shields.io/badge/GSAP-10161b?style=for-the-badge&logo=greensock&logoColor=a3c8b4)
+![WebCodecs](https://img.shields.io/badge/WebCodecs_MP4-10161b?style=for-the-badge&logoColor=98bdd5)
 
-A powerful, browser-based React application powered by [Remotion](https://www.remotion.dev/) that transforms text scripts into dynamic, fast-paced vertical videos. Designed specifically for the algorithmic pacing of TikTok, Instagram Reels, and YouTube Shorts (1080x1920), this tool allows creators to generate typography-driven shorts synchronously and deterministically.
+Cadence Studio is a short-form video editor in the spirit of CapCut and TikTok. You can build
+MVM-style edits where cuts, zooms, flashes and words all land on the beat. Everything runs on your
+device, from importing to the finished **MP4**. Nothing is uploaded.
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+```
+
+---
+
+## Features
+
+### Media and timeline
+- **Import photos, videos and several music files**: drag them anywhere onto the app, or use the library.
+  Clips land on the timeline automatically.
+- **Multi-track timeline**: video/photo tracks (layered as overlays), text tracks and music tracks.
+  You can add as many tracks as you like.
+- **Drag to move** (including to another track of the same kind), **trim** with the edge handles,
+  **split** (`S`), **duplicate**, **delete**, **undo/redo**. Slider drags count as a single undo step.
+- **Snapping** to the playhead, other clip edges and **beat markers**.
+- Timeline zoom with the slider, `+`/`−` or Ctrl/⌘ + scroll. The view follows the playhead during playback.
+- Mute, hide, lock and rename tracks.
+
+### Beat sync (MVM editing)
+- **Automatic BPM and beat-grid detection** for every music file. It runs in a Web Worker, using onset
+  flux, autocorrelation tempo estimation and grid phase alignment.
+- **Sync cuts**: re-time every clip on a track so each cut lands every 1, 2, 4 or 8 beats.
+- **Beat FX** on any visual clip: zoom pulse, flash, shake, blur pulse, exposure or tilt, with adjustable intensity.
+- **Text that reveals on the beat**, plus beat-pulse and beat-shake loop effects.
+- **Tap tempo**: press `B` (or *Tap beat*) to add your own markers. A grid offset nudges detection.
+- A live beat light and BPM readout in the transport bar.
+
+### Animated text
+- Multiple independent text layers. Drag them directly on the preview, where they snap to the centre lines.
+- **16 Google Fonts** across sans, display, serif, script and mono, shown in the font picker in their own typefaces.
+- Fill, outline, shadow, TikTok-style **box/pill backgrounds**, letter spacing, line height, wrap width,
+  alignment, uppercase and italic.
+- **Entrance animations** per word, letter or line: fade, pop, typewriter, slide, blur-in, bounce, drop,
+  rotate, stretch, glitch-in and **karaoke** highlight. Exits: fade, pop, slide, blur-out and shrink.
+  Loops: wave, float, breathe, flicker and jitter.
+- Stagger and duration controls, plus **GSAP easing curves** (overshoot, elastic, bounce, expo…).
+- **8 presets** (Bold caption, MVM impact, Cinematic title, Karaoke, Typewriter, Comic, Handwritten, Glitch).
+
+### Speed, pitch, zoom and look
+- **Speed** from 0.1× to 4× for video and music. An animated **speedometer** shows the current speed, the
+  timeline clips carry speed badges, and clip length rescales automatically.
+- **Pitch** from −12 to +12 semitones, **independent of speed**. Time-stretching uses WSOLA via SoundTouch
+  in a worker, so 2× doesn't sound like a chipmunk.
+- **Zoom/scale, position, rotation and opacity**, plus Ken Burns motion (zoom in/out, pan, drift).
+- **Transitions** in and out: fade, zoom punch, zoom out, slides, blur, flash, spin and whip pan.
+- **Colour**: brightness, contrast, saturation, hue, blur, vignette, and 8 filter presets.
+- Volume and fades per clip. Video clips keep their own audio, which can be pitched too.
+
+### Preview and export
+- A live canvas preview at the native aspect ratio: **9:16, 16:9, 1:1 or 4:5**.
+- **MP4 export** at 720p, 1080p or 1440p and 24, 30 or 60 fps, at three quality levels, with an in-app
+  preview and a download button.
+
+### Keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| `Space` | Play / pause |
+| `←` `→` | Step one frame (`Shift`: 1 s) |
+| `S` | Split at the playhead |
+| `B` | Tap a beat marker |
+| `T` | Add text at the playhead |
+| `Del` | Delete the selected clip |
+| `Ctrl D` | Duplicate |
+| `Ctrl Z` / `Ctrl ⇧ Z` | Undo / redo |
+| `+` / `−` | Zoom the timeline |
 
 ---
 
-## ✨ Key Features
+## Architecture
 
-*   📱 **Mobile-First Canvas:** Pre-configured for a 9:16 aspect ratio (1080x1920 @ 30FPS), perfect for modern short-form platforms.
-*   ⚡ **Real-Time Video Preview:** Instant playback via `@remotion/player` with auto-play, looping, and interactive scrubbing.
-*   🎛️ **Advanced Multi-Track Editor:** Add, remove, and layer multiple text boxes. Each text element operates independently with its own start delay, vertical position, and styling.
-*   ⏱️ **Algorithmic Timing:** Word-by-word animation automatically calculates timing based on your chosen speed settings.
-*   🎯 **Deterministic Rendering:** Frame-by-frame exactness. All visual effects (even randomized ones like Glitch) use Remotion's seeded `random()` tied to specific frames, ensuring zero flickering upon final MP4 export.
+The core idea is **one deterministic renderer**. `renderFrame(ctx, options)` is a pure function of
+*(project, time, frame source)* and draws onto a 2D canvas. The live preview and the MP4 exporter both call
+it, so **what you see is exactly what you export**. Randomness is seeded and easing is pure (GSAP's
+`parseEase`), so frame *n* always looks the same.
 
----
+```
+src/
+├─ types/project.ts        Serializable data model (undoable, JSON-ready)
+├─ config/                 Defaults/factories, fonts, presets, option lists, canvas sizes
+├─ engine/                 Pure, framework-free rendering + timeline maths
+│  ├─ renderFrame.ts       Draw a frame, return hitboxes for on-canvas selection
+│  ├─ drawVisual.ts        Fit, Ken Burns, transitions, beat FX, filters
+│  ├─ drawText.ts          Per-unit text animation + backgrounds
+│  ├─ textLayout.ts        Word wrap and per-word/letter layout (cached)
+│  ├─ textAnimations.ts    Strategy tables for in / out / loop animations
+│  ├─ transitions.ts       Strategy table for transitions (out = reversed in)
+│  ├─ beats.ts             Beat pulse envelope
+│  └─ timeline.ts          Split, trim, speed, snapping, beat mapping, sync-to-beats
+├─ audio/
+│  ├─ beatDetect.ts        Tempo and beat-grid detection (pure, unit tested)
+│  ├─ timeStretch.ts       Independent tempo/pitch via SoundTouch
+│  ├─ dsp.worker.ts        Runs both off the main thread
+│  ├─ audioBufferCache.ts  Cached speed/pitch-processed buffers
+│  ├─ mixer.ts             Schedules the mix on any (Offline)AudioContext
+│  └─ previewAudio.ts      Realtime playback, the preview's master clock
+├─ media/                  File import, waveform peaks, live <video> frame source
+├─ export/                 WebCodecs frame decoding + MP4 muxing (lazy-loaded)
+├─ store/                  zustand: editor (with history), playback, UI, toasts
+├─ hooks/                  Lenis smooth scroll, keyboard shortcuts, element size
+├─ components/             UI by area: library, preview, timeline, inspector, export, ui
+└─ styles/                 Design tokens + per-area CSS
+```
 
-## 🎨 Extensive Customization
+**How a frame is produced**
 
-Tailor every aspect of your text layers via the built-in UI editor.
+| | Preview | Export |
+| --- | --- | --- |
+| Video frames | One muted `<video>` per clip, kept in sync with the playhead | Mediabunny `CanvasSink.canvasesAtTimestamps`: frame-accurate, each packet decoded once |
+| Audio | `scheduleMix` on the realtime `AudioContext` | `scheduleMix` on an `OfflineAudioContext` |
+| Clock | Audio context time | Frame index ÷ fps |
+| Output | Canvas on screen | Canvas → `CanvasSource` → H.264 (or HEVC/VP9/AV1) + AAC/Opus → MP4 |
 
-### 🔠 Typography & Layout
+### Principles applied
+- **Single responsibility**: the engine knows nothing about React; components don't do maths; stores hold
+  state only. Media handles (File, AudioBuffer, `<video>`) live in a registry outside the undoable store.
+- **Open/closed**: animations, transitions, motions and beat FX are strategy tables. A new effect is one
+  entry plus one option label, and the renderer doesn't change.
+- **DRY**: one renderer and one mix scheduler for preview and export; one `TransformSection` and one
+  `SpeedSection` shared by several inspectors; the transition table reused for in and out.
+- **Dependency inversion**: the renderer depends on a `FrameSource` interface, not on how frames are decoded.
+- **Performance**: rendering runs in a rAF loop outside React and only draws when something changed. DSP
+  work runs in a worker. Layouts are cached. The playhead updates without re-rendering the timeline. The
+  encoder bundle is code-split and only loads when you export.
+- **Accessibility**: real buttons, radios, switches and labels, `aria-*` on custom controls, visible focus
+  rings, keyboard shortcuts, and `prefers-reduced-motion` support (GSAP intro and Lenis are skipped).
+- **Type safety**: `strict` TypeScript and discriminated unions for clips (`visual | audio | text`).
 
-*   **Fonts:** Inter, Poppins, Montserrat, Bebas Neue, Georgia, Times New Roman, Arial, Verdana, Courier New, Lucida Console.
-*   **Size & Color:** Granular font sizing (32px to 160px) and full hex color picking.
-*   **Positioning:** Adjust vertical placement from 10% (top) to 90% (bottom) of the screen.
+## Design system
 
-### 🎭 Animation Styles (Entrance)
+The design system has a deep **ink / steel-blue / sage** palette, with low saturation so the media stays in
+front (no neon). All values are tokens in `src/styles/tokens.css`:
 
-*   `Zoom pop`: Physics-based spring scaling that bounces words aggressively into the frame.
-*   `Fade in`: Smooth, cinematic opacity transitions.
-*   `Typewriter`: Code-style, character-by-character revelation.
-*   `Bounce in`: Elements drop or scale in with a pronounced overshoot.
-*   `Slide up`: Words translate smoothly on the Y-axis from below.
-*   `Blur in`: Transitions from heavily unfocused to sharp typography.
-*   `Karaoke`: Highlight colors synchronously across the text, mimicking lyric videos.
+- **Ink** `#070a0c → #f2f6f7`: blue-black neutrals for surfaces and text
+- **Steel** `#24405a → #c5dbe8`: primary actions, video clips, focus
+- **Sage** `#2c4d3e → #cfe3d8`: positive states, text clips, beat indicators
+- **Tide** `#2f5a5c → #66a0a0`: audio
 
-### 💫 Visual Effects (Persistent)
+Depth comes from **glass panels** (`backdrop-filter: blur() saturate()`), layered outer shadows with an
+inset top highlight, and **inset wells** for inputs, sliders and segmented controls.
 
-*   `Neon glow`: Multi-layered, pulsing colored drop-shadows driven by sine-wave math.
-*   `Glitch`: Cyberpunk-style horizontal jitter and chromatic aberration (cyan/magenta).
-*   `Shake`: High-energy rotational and translational jittering.
-*   `Wave`: Characters vertically oscillate in a smooth wave pattern.
-*   `Rainbow`: Continuous cycling of the font color through the hue spectrum.
-*   `Outline`: Bold exterior strokes for maximum readability against complex backgrounds.
+## Libraries and credits
 
----
+| Library | Used for |
+| --- | --- |
+| [GSAP](https://github.com/greensock/GSAP) | Easing curves inside the renderer (deterministic), panel and dialog animations |
+| [Lenis](https://github.com/darkroomengineering/lenis) | Smooth inertial scrolling in the library and inspector panels |
+| [React Bits](https://github.com/DavidHDev/react-bits) | Inspiration for `SpotlightCard` and `ShinyText` (re-implemented with CSS variables, no extra dependency) |
+| [Mediabunny](https://mediabunny.dev) | WebCodecs decoding and MP4 muxing |
+| [SoundTouchJS](https://github.com/cutterbl/SoundTouchJS) | Independent tempo and pitch (LGPL-2.1) |
+| [zustand](https://github.com/pmndrs/zustand) | State management |
+
+> The previous version of this template rendered with Remotion. It was replaced by a custom canvas engine
+> so the app can export MP4 **in the browser without a render server**, and so photos, videos, music and
+> text can all live on one free-form timeline.
+
+## Scripts
+
+```bash
+npm run dev         # dev server
+npm run build       # type-check + production build
+npm run test        # unit tests (timeline maths, beat detection)
+npm run lint        # ESLint
+npm run typecheck   # tsc only
+```
+
+## Browser support
+
+Editing works in all modern browsers. **MP4 export needs WebCodecs**: Chrome or Edge 94+ (recommended),
+Safari 16.4+ or Firefox 130+. If the browser can't encode AAC, it uses Opus audio inside the MP4. Canvas
+`filter` effects (colour, blur) need Chrome, Edge or Firefox; Safari renders them without the filter.
+
+## Roadmap ideas
+- Save projects to IndexedDB (including media) and re-open them
+- Keyframes and speed ramps (curves)
+- Auto-captions from speech
+- Rendering in a worker with `OffscreenCanvas`
