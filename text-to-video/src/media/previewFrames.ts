@@ -34,7 +34,7 @@ export class PreviewFrames implements FrameSource {
     for (const clip of project.clips) {
       if (clip.kind !== 'visual' || hidden.has(clip.trackId)) continue;
       const handle = mediaRegistry.get(clip.assetId);
-      if (handle?.kind !== 'video') continue;
+      if (handle?.kind !== 'video' || !handle.url) continue;
       seen.add(clip.id);
       const video = this.ensureVideo(clip.id, handle.url);
       const active = isClipActive(clip, time);

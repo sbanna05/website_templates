@@ -12,6 +12,9 @@ const PATHS = {
   trash: 'M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3',
   copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
   plus: 'M12 5v14M5 12h14',
+  minus: 'M5 12h14',
+  'panel-left': 'M4 4h16v16H4zM9 4v16',
+  'panel-right': 'M4 4h16v16H4zM15 4v16',
   music: 'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
   image: 'M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5M15.5 8.5h.01',
   video: 'M3 6h12v12H3zM15 10l6-3v10l-6-3',
@@ -43,6 +46,9 @@ const PATHS = {
   'flip-h': 'M12 3v18M8 7 3 12l5 5zM16 7l5 5-5 5z',
   'flip-v': 'M3 12h18M7 8l5-5 5 5zM7 16l5 5 5-5z',
   merge: 'M6 3v6a6 6 0 0 0 6 6h0a6 6 0 0 1 6 6M18 3v6a6 6 0 0 1-6 6M12 15v6',
+  curve: 'M3 18c3 0 4-11 8-11s4 7 6 7 2-3 4-3M3 21h18',
+  mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM5 11a7 7 0 0 0 14 0M12 18v3M8 21h8',
+  crown: 'M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z',
 } as const;
 
 export type IconName = keyof typeof PATHS;

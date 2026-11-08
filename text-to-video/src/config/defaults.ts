@@ -1,7 +1,10 @@
+import { DEFAULT_MASTER } from '../audio/master';
+import { FLAT_EQ } from '../engine/eq';
 import { createId } from '../lib/id';
 import type {
   Asset,
   AudioClip,
+  AudioEffects,
   Crop,
   LightEffect,
   LightType,
@@ -37,7 +40,7 @@ export const NEUTRAL_FILTERS: Filters = {
 
 export const FULL_CROP: Crop = { x: 0, y: 0, width: 1, height: 1 };
 
-export const MARKER_COLORS = ['#c4a070', '#77a68e', '#6797b8', '#c0736a', '#98a8b2'] as const;
+export const MARKER_COLORS = ['#c4a070', '#77a68e', '#6797b8', '#c0736a', '#98a8b2', '#e3e3e3', '#e192e4'] as const;
 
 export function createLight(type: LightType): LightEffect {
   const presets: Record<LightType, Partial<LightEffect>> = {
@@ -127,6 +130,9 @@ export function createVisualClip(asset: Asset, trackId: string, start: number): 
   };
 }
 
+/** No sound design: what you imported is what you hear. */
+export const DRY_EFFECTS: AudioEffects = { reverb: 0, roomSize: 0.5, lowpass: 0 };
+
 export function createAudioClip(asset: Asset, trackId: string, start: number): AudioClip {
   return {
     id: createId('clip'),
@@ -143,6 +149,9 @@ export function createAudioClip(asset: Asset, trackId: string, start: number): A
     fadeOut: 0.5,
     beatSource: true,
     beatOffset: 0,
+    effects: { ...DRY_EFFECTS },
+    eq: { ...FLAT_EQ },
+    volumeKeys: [],
   };
 }
 
@@ -169,7 +178,7 @@ export function createEmptyProject(): Project {
     name: 'Untitled edit',
     aspect: '9:16',
     fps: 30,
-    backgroundColor: '#0d1317',
+    backgroundColor: '#0e232f',
     tracks: [textTrack, videoTrack, audioTrack],
     clips: [
       createTextClip(textTrack.id, 0, {
@@ -180,5 +189,7 @@ export function createEmptyProject(): Project {
     manualBeats: [],
     markers: [],
     snapToBeats: true,
+    crossfadeOverlaps: true,
+    master: { ...DEFAULT_MASTER, eq: { ...FLAT_EQ } },
   };
 }

@@ -4,7 +4,6 @@
  * shadows and inset highlights rather than glow.
  */
 :root {
-  /* Ink (neutrals, blue-black) */
   --ink-1000: #070a0c;
   --ink-950: #0b0f12;
   --ink-900: #10161b;
@@ -55,13 +54,19 @@
   --accent-soft: rgba(103, 151, 184, 0.16);
   --positive: var(--sage-400);
   --positive-soft: rgba(119, 166, 142, 0.16);
-  --warning: #c4a070;
-  --danger: #c0736a;
+  --warning: #a9640a;
+  --danger: #cf6464;
   --danger-soft: rgba(192, 115, 106, 0.14);
 
   --clip-visual: linear-gradient(180deg, var(--steel-500), var(--steel-700));
   --clip-text: linear-gradient(180deg, var(--sage-500), var(--sage-700));
   --clip-audio: linear-gradient(180deg, var(--tide-500), var(--tide-600));
+
+  /* Stems — four muted hues that stay apart on a dark clip */
+  --stem-vocals: var(--sage-200);
+  --stem-drums: var(--steel-200);
+  --stem-bass: #9fb6c4;
+  --stem-other: #d6c3a1;
 
   /* Glass recipe */
   --glass-blur: blur(22px) saturate(140%);

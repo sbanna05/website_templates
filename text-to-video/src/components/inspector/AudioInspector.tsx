@@ -1,13 +1,20 @@
 import { PITCH_RANGE } from '../../config/options';
+import { isFlatEq } from '../../engine/eq';
 import { withSpeed } from '../../engine/timeline';
 import { useEditor } from '../../store/editorStore';
 import type { AudioClip } from '../../types/project';
 import { Section } from '../ui/Section';
 import { Slider } from '../ui/Slider';
-import { Toggle } from '../ui/Toggle';
 import { Waveform } from '../timeline/Waveform';
+import { BeatGridSection } from './BeatGridSection';
 import { BeatMatchPanel } from './BeatMatchPanel';
+import { EqEditor } from './EqEditor';
+import { LyricsSection } from './LyricsSection';
+import { SectionCutter } from './SectionCutter';
+import { SoundSection } from './SoundSection';
 import { SpeedSection } from './SpeedSection';
+import { StemsSection } from './StemsSection';
+import { VolumeCurveEditor } from './VolumeCurveEditor';
 import { useClipPatch } from './useClipPatch';
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -17,7 +24,6 @@ const PITCH_PRESETS = [-12, -7, -5, 0, 5, 7, 12];
 export function AudioInspector({ clip }: { clip: AudioClip }) {
   const asset = useEditor((s) => s.assets[clip.assetId]);
   const patch = useClipPatch(clip);
-  const bpm = asset?.beats?.bpm ?? 0;
 
   return (
     <>
@@ -61,36 +67,17 @@ export function AudioInspector({ clip }: { clip: AudioClip }) {
         </div>
       </Section>
 
-      <BeatMatchPanel preferredBaseId={clip.id} />
-
-      <Section title="Beat sync" icon="beat">
-        <div className="stat-row">
-          <div className="stat">
-            <strong>{bpm ? Math.round(bpm * clip.speed) : '—'}</strong>
-            <span>BPM {clip.speed !== 1 && bpm ? `(orig. ${Math.round(bpm)})` : ''}</span>
-          </div>
-          <div className="stat">
-            <strong>{asset?.beats?.beats.length ?? '—'}</strong>
-            <span>beats found</span>
-          </div>
-        </div>
-        <Toggle
-          label="Drive beat sync"
-          hint="Beat effects, snapping and on-beat text follow this track"
-          checked={clip.beatSource}
-          onChange={(beatSource) => patch({ beatSource })}
-        />
-        <Slider
-          label="Grid offset"
-          value={clip.beatOffset}
-          min={-0.5}
-          max={0.5}
-          step={0.005}
-          defaultValue={0}
-          format={(v) => `${v >= 0 ? '+' : ''}${Math.round(v * 1000)} ms`}
-          onChange={(beatOffset) => patch({ beatOffset }, 'beatOffset')}
-        />
+      <StemsSection clip={clip} />
+      <Section title="EQ" icon="sliders" defaultOpen={!isFlatEq(clip.eq)}>
+        <EqEditor label="Clip EQ" eq={clip.eq} onChange={(eq, key) => patch({ eq }, key)} />
       </Section>
+      <SoundSection clip={clip} />
+      <VolumeCurveEditor clip={clip} />
+
+      <BeatGridSection clip={clip} />
+      <SectionCutter key={clip.id} clip={clip} />
+      <BeatMatchPanel preferredBaseId={clip.id} />
+      <LyricsSection clip={clip} />
     </>
   );
 }

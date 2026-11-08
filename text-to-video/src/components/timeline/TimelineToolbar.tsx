@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useEditor, selectSelectedClip, type SyncSource } from '../../store/editorStore';
+import { mergeBlocker } from '../../engine/merge';
 import { usePlayback } from '../../store/playbackStore';
 import { ZOOM_RANGE, useUi } from '../../store/uiStore';
 import { Button, IconButton } from '../ui/Button';
@@ -8,9 +9,12 @@ const BEAT_DIVISIONS = [1, 2, 4, 8] as const;
 
 export function TimelineToolbar() {
   const selected = useEditor(selectSelectedClip);
+  const selectedIds = useEditor((s) => s.selectedClipIds);
   const project = useEditor((s) => s.project);
-  const { splitSelected, duplicateClip, deleteClip, toggleSnap, syncToBeats, clearManualBeats, addTrack, addMarker, undo, redo } =
+  const { splitSelected, duplicateClips, deleteClips, mergeClips, toggleSnap, syncToBeats, clearManualBeats, addTrack, addMarker, undo, redo } =
     useEditor.getState();
+  const count = selectedIds.length;
+  const mergeHint = mergeBlocker(project.clips.filter((c) => selectedIds.includes(c.id)));
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
   const { pxPerSecond, setZoom, zoomBy } = useUi();
@@ -32,8 +36,19 @@ export function TimelineToolbar() {
         <span className="toolbar-divider" />
         <IconButton icon="scissors" label="Split at playhead (S)" onClick={() => splitSelected(usePlayback.getState().time)} />
         <IconButton icon="flag" label="Add mark at playhead (M)" onClick={() => addMarker(usePlayback.getState().time)} />
-        <IconButton icon="copy" label="Duplicate (Ctrl D)" disabled={!selected} onClick={() => selected && duplicateClip(selected.id)} />
-        <IconButton icon="trash" label="Delete (Del)" disabled={!selected} onClick={() => selected && deleteClip(selected.id)} />
+        <IconButton icon="copy" label="Duplicate (Ctrl D)" disabled={count === 0} onClick={() => duplicateClips(selectedIds)} />
+        <IconButton
+          icon="merge"
+          label={mergeHint ? `Merge parts (Ctrl J) — ${mergeHint}` : `Merge ${count} parts into one (Ctrl J)`}
+          disabled={Boolean(mergeHint)}
+          onClick={() => void mergeClips(selectedIds, 'back-to-back')}
+        />
+        <IconButton icon="trash" label="Delete (Del)" disabled={count === 0} onClick={() => deleteClips(selectedIds)} />
+        {count > 1 && (
+          <span className="selection-pill" role="status">
+            {count} selected
+          </span>
+        )}
       </div>
 
       <div className="toolbar-group toolbar-group--beat">

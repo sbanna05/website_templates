@@ -25,13 +25,14 @@ export class ExportFrames implements FrameSource {
     for (const clip of project.clips) {
       if (clip.kind !== 'visual' || hidden.has(clip.trackId)) continue;
       const handle = mediaRegistry.get(clip.assetId);
-      if (handle?.kind !== 'video') continue;
+      if (handle?.kind !== 'video' || !handle.file) continue;
+      const { file } = handle;
 
-      const input = new Input({ source: new BlobSource(handle.file), formats: ALL_FORMATS });
+      const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
       const track = await input.getPrimaryVideoTrack();
       if (!track || !(await track.canDecode())) {
         input.dispose();
-        throw new Error(`Your browser can't decode "${handle.file.name}" for export.`);
+        throw new Error(`Your browser can't decode "${file.name}" for export.`);
       }
       const duration = await track.computeDuration();
       const sink = new CanvasSink(track, { poolSize: 3 });

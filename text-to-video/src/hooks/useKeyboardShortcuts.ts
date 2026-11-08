@@ -15,8 +15,12 @@ export const SHORTCUTS: [string, string][] = [
   ['B', 'Tap a beat marker'],
   ['M', 'Add a mark at the playhead'],
   ['T', 'Add text at playhead'],
-  ['Del', 'Delete selected clip'],
-  ['Ctrl D', 'Duplicate clip'],
+  ['Click / Ctrl-click / Shift-click', 'Select one / toggle / add clips'],
+  ['Drag on empty lanes', 'Box-select clips'],
+  ['Ctrl A', 'Select all clips'],
+  ['Del', 'Delete selected clips'],
+  ['Ctrl D', 'Duplicate selected clips'],
+  ['Ctrl J', 'Merge (join) selected parts'],
   ['Ctrl Z / Ctrl ⇧ Z', 'Undo / redo'],
   ['+ / −', 'Zoom timeline'],
   ['Esc', 'Deselect'],
@@ -39,9 +43,11 @@ export function useKeyboardShortcuts(): void {
         b: () => editor.addManualBeat(playback.time),
         t: () => editor.addText(playback.time),
         m: () => editor.addMarker(playback.time),
-        delete: () => editor.selectedClipId && editor.deleteClip(editor.selectedClipId),
-        backspace: () => editor.selectedClipId && editor.deleteClip(editor.selectedClipId),
-        d: () => mod && editor.selectedClipId && editor.duplicateClip(editor.selectedClipId),
+        delete: () => editor.deleteClips(editor.selectedClipIds),
+        backspace: () => editor.deleteClips(editor.selectedClipIds),
+        d: () => editor.duplicateClips(editor.selectedClipIds),
+        a: () => editor.selectAll(),
+        j: () => void editor.mergeClips(editor.selectedClipIds, 'back-to-back'),
         z: () => mod && (event.shiftKey ? editor.redo() : editor.undo()),
         y: () => mod && editor.redo(),
         '+': () => useUi.getState().zoomBy(1.25),
@@ -51,7 +57,7 @@ export function useKeyboardShortcuts(): void {
       };
       const handler = handlers[key];
       if (!handler) return;
-      if (['d', 'z', 'y'].includes(key) && !mod) return;
+      if (['d', 'z', 'y', 'a', 'j'].includes(key) && !mod) return;
       event.preventDefault();
       handler();
     };

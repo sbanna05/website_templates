@@ -20,7 +20,7 @@ export function AssetCard({ asset, layout }: AssetCardProps) {
 
   return (
     <SpotlightCard
-      className={`asset-card asset-card--${layout} ${ready ? '' : 'is-loading'}`}
+      className={`asset-card asset-card--${layout} ${ready ? '' : 'is-loading'} ${asset.stemOf ? 'asset-card--stem' : ''}`}
       draggable={ready}
       onDragStart={(e) => {
         e.dataTransfer.setData(ASSET_DRAG_TYPE, asset.id);
@@ -49,6 +49,8 @@ export function AssetCard({ asset, layout }: AssetCardProps) {
         <span className="asset-card__tags">
           {asset.beats && asset.beats.bpm > 0 && <span className="tag tag--positive">{Math.round(asset.beats.bpm)} BPM</span>}
           {asset.kind === 'audio' && ready && !asset.beats && <span className="tag">Analyzing…</span>}
+          {asset.stems && <span className="tag">4 stems</span>}
+          {asset.stemOf && <span className="tag tag--stem">Stem</span>}
           {usageCount > 0 && <span className="tag">{usageCount}× used</span>}
         </span>
       </div>

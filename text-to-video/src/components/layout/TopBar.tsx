@@ -1,7 +1,7 @@
 import { ASPECT_OPTIONS } from '../../config/canvas';
 import { useEditor } from '../../store/editorStore';
 import { useUi } from '../../store/uiStore';
-import { Button } from '../ui/Button';
+import { Button, IconButton } from '../ui/Button';
 import { Segmented } from '../ui/Segmented';
 import { ShinyText } from '../ui/ShinyText';
 
@@ -10,6 +10,9 @@ export function TopBar() {
   const aspect = useEditor((s) => s.project.aspect);
   const { setName, setAspect } = useEditor.getState();
   const openExport = () => useUi.getState().setExportOpen(true);
+  const libraryOpen = useUi((s) => s.layout.libraryOpen);
+  const inspectorOpen = useUi((s) => s.layout.inspectorOpen);
+  const togglePanel = useUi((s) => s.togglePanel);
 
   return (
     <header className="topbar">
@@ -19,8 +22,7 @@ export function TopBar() {
           <span />
           <span />
         </span>
-        <ShinyText text="Cadence" className="brand-name" />
-        <span className="brand-tag">Studio</span>
+        <ShinyText text="ArticVid" className="brand-name" />
       </div>
 
       <input
@@ -38,6 +40,21 @@ export function TopBar() {
           value={aspect}
           options={ASPECT_OPTIONS.map((o) => ({ label: o.label, value: o.value, title: o.hint }))}
           onChange={setAspect}
+        />
+      </div>
+
+      <div className="topbar__panels" role="group" aria-label="Panels">
+        <IconButton
+          icon="panel-left"
+          label={libraryOpen ? 'Hide library' : 'Show library'}
+          active={libraryOpen}
+          onClick={() => togglePanel('libraryOpen')}
+        />
+        <IconButton
+          icon="panel-right"
+          label={inspectorOpen ? 'Hide inspector' : 'Show inspector'}
+          active={inspectorOpen}
+          onClick={() => togglePanel('inspectorOpen')}
         />
       </div>
 

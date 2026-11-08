@@ -10,6 +10,7 @@ import {
   getFirstEncodableAudioCodec,
   getFirstEncodableVideoCodec,
 } from 'mediabunny';
+import { connectMaster } from '../audio/master';
 import { collectMixSources, ensureMixBuffers, scheduleMix } from '../audio/mixer';
 import { frameSizeFor } from '../config/canvas';
 import { cssFont } from '../config/fonts';
@@ -52,7 +53,7 @@ async function renderAudioMix(project: Project, assets: Record<string, Asset>, d
   if (sources.length === 0) return null;
   await ensureMixBuffers(sources);
   const ctx = new OfflineAudioContext(2, Math.ceil(duration * SAMPLE_RATE), SAMPLE_RATE);
-  scheduleMix(ctx, ctx.destination, sources, 0, 0);
+  scheduleMix(ctx, connectMaster(ctx, ctx.destination, project.master), sources, 0, 0);
   return ctx.startRendering();
 }
 

@@ -9,6 +9,7 @@ import { Select } from '../ui/Select';
 import { Slider } from '../ui/Slider';
 import { CropEditor } from './CropEditor';
 import { LightsSection } from './LightsSection';
+import { LyricsSection } from './LyricsSection';
 import { MotionSection } from './MotionSection';
 import { SpeedSection } from './SpeedSection';
 import { TransformSection } from './TransformSection';
@@ -88,6 +89,7 @@ export function VisualInspector({ clip }: { clip: VisualClip }) {
           <Slider label="Pitch" value={clip.pitch} min={PITCH_RANGE.min} max={PITCH_RANGE.max} step={1} defaultValue={0} format={semis} onChange={(pitch) => patch({ pitch }, 'pitch')} />
         </Section>
       )}
+      <LyricsSection clip={clip} />
     </>
   );
 }

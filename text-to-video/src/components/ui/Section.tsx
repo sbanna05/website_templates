@@ -9,7 +9,6 @@ interface SectionProps {
   children: ReactNode;
 }
 
-/** Collapsible inspector group. */
 export function Section({ title, icon, defaultOpen = true, aside, children }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (

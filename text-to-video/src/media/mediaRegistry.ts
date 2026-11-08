@@ -3,8 +3,9 @@ import type { AssetKind } from '../types/project';
 /** Non-serializable media handles, kept outside the (undoable) store. */
 export interface MediaHandle {
   kind: AssetKind;
-  file: File;
-  url: string;
+  /** The imported file. Generated audio (stems) has none — it lives only as an AudioBuffer. */
+  file?: File;
+  url?: string;
   image?: HTMLImageElement;
   audio?: AudioBuffer;
 }
@@ -22,7 +23,7 @@ export const mediaRegistry = {
   },
   remove: (assetId: string): void => {
     const handle = handles.get(assetId);
-    if (handle) URL.revokeObjectURL(handle.url);
+    if (handle?.url) URL.revokeObjectURL(handle.url);
     handles.delete(assetId);
   },
 };

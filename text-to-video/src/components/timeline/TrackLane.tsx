@@ -1,7 +1,6 @@
-import { useState, type DragEvent, type PointerEvent } from 'react';
-import { snapValue } from '../../engine/timeline';
+import { useMemo, useState, type DragEvent, type PointerEvent } from 'react';
+import { clipEnd, snapValue } from '../../engine/timeline';
 import { useEditor } from '../../store/editorStore';
-import { usePlayback } from '../../store/playbackStore';
 import type { Asset, Clip, Track } from '../../types/project';
 import { ASSET_DRAG_TYPE } from '../library/dnd';
 import { ClipItem } from './ClipItem';
@@ -11,18 +10,22 @@ interface TrackLaneProps {
   track: Track;
   clips: Clip[];
   assets: Record<string, Asset>;
-  selectedClipId: string | null;
+  selected: ReadonlySet<string>;
   pxPerSecond: number;
   beats: readonly number[];
   width: number;
   height: number;
+  /** Press on empty lane space — the timeline turns it into a seek or a selection box. */
+  onBackgroundPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
 }
 
 const acceptsAsset = (track: Track, asset: Asset | undefined) =>
   Boolean(asset) && !track.locked && (track.kind === 'audio' ? asset?.kind === 'audio' : track.kind === 'visual' && asset?.kind !== 'audio');
 
-export function TrackLane({ track, clips, assets, selectedClipId, pxPerSecond, beats, width, height }: TrackLaneProps) {
+export function TrackLane({ track, clips, assets, selected, pxPerSecond, beats, width, height, onBackgroundPointerDown }: TrackLaneProps) {
   const [dropping, setDropping] = useState(false);
+  const crossfade = useEditor((s) => s.project.crossfadeOverlaps);
+  const overlaps = useMemo(() => (track.kind === 'audio' && crossfade ? overlapZones(clips) : []), [track.kind, crossfade, clips]);
   const isAssetDrag = (e: DragEvent) => e.dataTransfer.types.includes(ASSET_DRAG_TYPE);
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -39,10 +42,7 @@ export function TrackLane({ track, clips, assets, selectedClipId, pxPerSecond, b
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
-    useEditor.getState().select(null);
-    const rect = event.currentTarget.getBoundingClientRect();
-    usePlayback.getState().seek((event.clientX - rect.left) / pxPerSecond);
+    if (event.target === event.currentTarget) onBackgroundPointerDown(event);
   };
 
   return (
@@ -59,17 +59,37 @@ export function TrackLane({ track, clips, assets, selectedClipId, pxPerSecond, b
       onDragLeave={() => setDropping(false)}
       onDrop={onDrop}
     >
+      {overlaps.map(([from, to]) => (
+        <span
+          key={`${from}-${to}`}
+          className="track-lane__xfade"
+          style={{ left: from * pxPerSecond, width: (to - from) * pxPerSecond }}
+          title="Crossfade — one song fades into the other here"
+        />
+      ))}
       {clips.map((clip) => (
         <ClipItem
           key={clip.id}
           clip={clip}
           asset={clip.kind === 'text' ? undefined : assets[clip.assetId]}
           track={track}
-          selected={clip.id === selectedClipId}
+          selected={selected.has(clip.id)}
+          multi={selected.size > 1}
           pxPerSecond={pxPerSecond}
           beats={beats}
         />
       ))}
     </div>
   );
+}
+
+/** Time ranges where consecutive clips on a lane overlap. */
+function overlapZones(clips: readonly Clip[]): [number, number][] {
+  const sorted = [...clips].sort((a, b) => a.start - b.start);
+  const zones: [number, number][] = [];
+  for (let i = 1; i < sorted.length; i += 1) {
+    const end = Math.min(clipEnd(sorted[i - 1]), clipEnd(sorted[i]));
+    if (end > sorted[i].start + 0.01) zones.push([sorted[i].start, end]);
+  }
+  return zones;
 }

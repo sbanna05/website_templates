@@ -1,16 +1,19 @@
 import { useEditor } from '../../store/editorStore';
+import { TRACK_HEIGHT_LIMITS, useUi } from '../../store/uiStore';
 import type { Track } from '../../types/project';
 import { IconButton } from '../ui/Button';
 import { Icon, type IconName } from '../ui/Icon';
+import { Splitter } from '../ui/Splitter';
 
 const KIND_ICON: Record<Track['kind'], IconName> = { visual: 'film', text: 'text', audio: 'music' };
 
-export function TrackHeader({ track, height }: { track: Track; height: number }) {
+export function TrackHeader({ track, height, width }: { track: Track; height: number; width: number }) {
   const updateTrack = useEditor((s) => s.updateTrack);
   const removeTrack = useEditor((s) => s.removeTrack);
+  const setTrackHeight = useUi((s) => s.setTrackHeight);
 
   return (
-    <div className={`track-header track-header--${track.kind}`} style={{ height }}>
+    <div className={`track-header track-header--${track.kind} ${height < 48 ? 'is-compact' : ''}`} style={{ height, width }}>
       <span className="track-header__icon">
         <Icon name={KIND_ICON[track.kind]} size={14} />
       </span>
@@ -48,6 +51,16 @@ export function TrackHeader({ track, height }: { track: Track; height: number })
         />
         <IconButton icon="trash" label="Delete track" size={14} onClick={() => removeTrack(track.id)} />
       </div>
+      <Splitter
+        orientation="horizontal"
+        label={`${track.name} track height`}
+        className="track-header__resize"
+        value={height}
+        min={TRACK_HEIGHT_LIMITS.min}
+        max={TRACK_HEIGHT_LIMITS.max}
+        onChange={(h) => setTrackHeight(track.id, h)}
+        onReset={() => setTrackHeight(track.id, null)}
+      />
     </div>
   );
 }

@@ -9,12 +9,51 @@ export type AspectRatio = '9:16' | '16:9' | '1:1' | '4:5' | '3:4';
 
 export type AssetKind = 'image' | 'video' | 'audio';
 
+/** A steady (fixed-tempo) beat grid, the way DJ apps lock a track: tempo plus one known downbeat. */
+export interface BeatGrid {
+  bpm: number;
+  /** A downbeat (bar start), seconds of the source file. */
+  anchor: number;
+}
+
 export interface BeatAnalysis {
   bpm: number;
-  /** Steady beat grid, in seconds of the source file. */
   beats: number[];
-  /** Raw detected onsets (transients), in seconds of the source file. */
   onsets: number[];
+  /** Index (0–3) of the first beat in `beats` that starts a bar. Missing = 0. */
+  firstBar?: number;
+  /** Set when the grid was adjusted by hand; `beats` is then generated from it. */
+  grid?: BeatGrid;
+  /** The detector's original result, kept so a hand-made grid can be reset. */
+  detected?: { bpm: number; beats: number[] };
+}
+
+/** Parts of a song an AI stem split produces. "other" is everything else — melody, synths, guitars. */
+export type StemName = 'vocals' | 'drums' | 'bass' | 'other';
+
+export interface StemChannel {
+  /** 0–1.5 gain. */
+  volume: number;
+  muted: boolean;
+  solo: boolean;
+}
+
+/** Per-clip stem mixer — like a DJ app's stem faders. */
+export type StemMix = Record<StemName, StemChannel>;
+
+/** One recognised word, timed in seconds of the source file. */
+export interface LyricWord {
+  text: string;
+  start: number;
+  end: number;
+}
+
+export interface LyricTranscript {
+  words: LyricWord[];
+  from: number;
+  to: number;
+  language: string;
+  model: string;
 }
 
 export interface Asset {
@@ -30,6 +69,12 @@ export interface Asset {
   /** Normalised 0–1 peaks across the whole file, for waveform drawing. */
   waveform?: number[];
   beats?: BeatAnalysis;
+  /** Words detected in the audio (auto lyrics / captions), in seconds of the source file. */
+  lyrics?: LyricTranscript;
+  /** Asset ids of this song's separated stems, once it has been split. */
+  stems?: Record<StemName, string>;
+  /** Set on a stem asset: which song it was split from. */
+  stemOf?: { assetId: string; stem: StemName };
   status: 'loading' | 'ready' | 'error';
 }
 
@@ -45,14 +90,10 @@ export interface Track {
 }
 
 export interface Transform {
-  /** Centre offset as a fraction of frame width (0 = centred). */
   x: number;
-  /** Centre offset as a fraction of frame height (0 = centred). */
   y: number;
   scale: number;
-  /** Degrees. */
   rotation: number;
-  /** 0–1. */
   opacity: number;
 }
 
@@ -116,14 +157,10 @@ export interface LightEffect {
   type: LightType;
   x: number;
   y: number;
-  /** Radius as a fraction of the image's shorter side. */
   size: number;
-  /** 0–1. */
   intensity: number;
   color: string;
-  /** Degrees — direction of beams, leaks and flare streaks. */
   angle: number;
-  /** Brightens on every beat. */
   pulseOnBeat: boolean;
 }
 
@@ -138,7 +175,6 @@ export type BeatFxType = 'none' | 'zoom-pulse' | 'flash' | 'shake' | 'blur-pulse
 
 export interface BeatFx {
   type: BeatFxType;
-  /** 0–1. */
   intensity: number;
 }
 
@@ -153,14 +189,12 @@ export interface Filters {
   temperature: number;
   /** -1 (green) … 1 (magenta). */
   tint: number;
-  /** 0–1, lifts the blacks for a matte look. */
   fade: number;
 }
 
 interface ClipBase {
   id: string;
   trackId: string;
-  /** Timeline position, seconds. */
   start: number;
   /** Length on the timeline, seconds (already accounts for speed). */
   duration: number;
@@ -190,6 +224,55 @@ export interface VisualClip extends ClipBase {
   beatFx: BeatFx;
 }
 
+/** Per-clip sound design, applied identically in preview and export. */
+export interface AudioEffects {
+  /** 0–1 wet level of the reverb send. */
+  reverb: number;
+  /** 0–1 room size → reverb decay from ~0.6 s to ~5 s. */
+  roomSize: number;
+  /** 0–1 muffling: 0 = open, 1 = low-pass at ~400 Hz ("underwater"). */
+  lowpass: number;
+}
+
+/** Three-band EQ with a low cut, the layout of a mixing-desk channel strip. Gains in dB. */
+export interface EqSettings {
+  /** High-pass corner in Hz; 0 = off. Removes rumble below it. */
+  lowCut: number;
+  /** Low shelf gain (bass), dB. */
+  low: number;
+  /** Bell gain at `midFreq`, dB. */
+  mid: number;
+  /** Centre of the mid band, Hz. */
+  midFreq: number;
+  /** High shelf gain (air / presence), dB. */
+  high: number;
+}
+
+/** The master bus every sound passes through last. */
+export interface MasterSettings {
+  /** 0–1.5 output gain. */
+  volume: number;
+  eq: EqSettings;
+  /** 0–1 bus compression ("glue") that pulls the mix together. */
+  glue: number;
+  /** Brick-wall limiter that stops the export from clipping. */
+  limiter: boolean;
+}
+
+/** How the volume travels from one keyframe to the next — like a Blender graph-editor handle. */
+export type CurveShape = 'linear' | 'smooth' | 'hold';
+
+/** A volume keyframe. Pinned to the music (source seconds), so it survives trims and speed changes. */
+export interface VolumeKey {
+  id: string;
+  /** Seconds of the source file. */
+  time: number;
+  /** Gain multiplier on top of the clip volume, 0–2 (1 = unchanged). */
+  value: number;
+  /** Shape of the segment that leaves this key. */
+  shape: CurveShape;
+}
+
 export interface AudioClip extends ClipBase {
   kind: 'audio';
   assetId: string;
@@ -204,6 +287,12 @@ export interface AudioClip extends ClipBase {
   beatSource: boolean;
   /** Nudges the detected grid, seconds. */
   beatOffset: number;
+  effects: AudioEffects;
+  eq: EqSettings;
+  /** Volume automation; empty = flat. */
+  volumeKeys: VolumeKey[];
+  /** Stem mixer; only used once the song has been split into stems. */
+  stems?: StemMix;
 }
 
 export type TextUnit = 'word' | 'char' | 'line';
@@ -305,4 +394,7 @@ export interface Project {
   /** Named marks (TikTok-style), usable as snap points and cut points. */
   markers: Marker[];
   snapToBeats: boolean;
+  /** Songs that overlap on the same audio track blend into each other instead of playing on top. */
+  crossfadeOverlaps: boolean;
+  master: MasterSettings;
 }
