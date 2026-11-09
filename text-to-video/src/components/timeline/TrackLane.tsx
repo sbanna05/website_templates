@@ -1,4 +1,4 @@
-import { useMemo, useState, type DragEvent, type PointerEvent } from 'react';
+import { useMemo, useState, type CSSProperties, type DragEvent, type PointerEvent } from 'react';
 import { clipEnd, handOvers, snapValue } from '../../engine/timeline';
 import { useEditor } from '../../store/editorStore';
 import type { Asset, Clip, Track } from '../../types/project';
@@ -25,6 +25,8 @@ const acceptsAsset = (track: Track, asset: Asset | undefined) =>
 export function TrackLane({ track, clips, assets, selected, pxPerSecond, beats, width, height, onBackgroundPointerDown }: TrackLaneProps) {
   const [dropping, setDropping] = useState(false);
   const crossfade = useEditor((s) => s.project.crossfadeOverlaps);
+  // Another track is soloed: this one is silent, so it is drawn dimmed like a muted track.
+  const silencedBySolo = useEditor((s) => track.kind !== 'text' && !track.solo && s.project.tracks.some((t) => t.solo));
   const overlaps = useMemo(() => (track.kind === 'audio' && crossfade ? overlapZones(clips) : []), [track.kind, crossfade, clips]);
   const isAssetDrag = (e: DragEvent) => e.dataTransfer.types.includes(ASSET_DRAG_TYPE);
 
@@ -47,8 +49,8 @@ export function TrackLane({ track, clips, assets, selected, pxPerSecond, beats, 
 
   return (
     <div
-      className={`track-lane track-lane--${track.kind} ${dropping ? 'is-dropping' : ''} ${track.hidden || track.muted ? 'is-dimmed' : ''}`}
-      style={{ width, height }}
+      className={`track-lane track-lane--${track.kind} ${dropping ? 'is-dropping' : ''} ${track.hidden || track.muted || silencedBySolo ? 'is-dimmed' : ''} ${track.color ? 'has-tint' : ''}`}
+      style={{ width, height, ...(track.color ? { '--track-color': track.color } : {}) } as CSSProperties}
       onPointerDown={onPointerDown}
       onDragOver={(e) => {
         if (!isAssetDrag(e)) return;

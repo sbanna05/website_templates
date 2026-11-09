@@ -79,7 +79,7 @@ export function BeatGridSection({ clip }: { clip: AudioClip }) {
         </div>
         <div className="stat">
           <strong>{beats?.beats.length ?? '—'}</strong>
-          <span>{locked ? 'beats · steady grid' : 'beats detected'}</span>
+          <span>{locked ? 'beats · your grid' : beats?.steady ? `beats · locked grid${beats.confidence ? ` · ${Math.round(beats.confidence * 100)}%` : ''}` : 'beats · follows the band'}</span>
         </div>
       </div>
 

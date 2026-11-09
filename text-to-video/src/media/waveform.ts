@@ -36,3 +36,12 @@ export function monoForAnalysis(buffer: AudioBuffer): { samples: Float32Array; s
   }
   return { samples, sampleRate: buffer.sampleRate / factor };
 }
+
+/** Several same-length buffers (e.g. stems) summed to mono at ≤ 24 kHz, for harmony analysis. */
+export function monoMixForAnalysis(buffers: readonly AudioBuffer[]): { samples: Float32Array; sampleRate: number } {
+  const parts = buffers.map(monoForAnalysis);
+  const length = Math.min(...parts.map((p) => p.samples.length));
+  const samples = new Float32Array(length);
+  for (const part of parts) for (let i = 0; i < length; i += 1) samples[i] += part.samples[i];
+  return { samples, sampleRate: parts[0]?.sampleRate ?? 22050 };
+}

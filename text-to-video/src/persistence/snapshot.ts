@@ -71,7 +71,7 @@ export async function restoreSnapshot(saved: SavedProject, readMedia: (key: stri
       const file = blob instanceof File ? blob : new File([blob], meta.name, { type: mediaType || blob.type });
       try {
         const loaded = await loadAsset(meta.id, file);
-        return { ...loaded, name: meta.name, beats: meta.beats, lyrics: meta.lyrics, stems: meta.stems, stemOf: meta.stemOf };
+        return { ...loaded, name: meta.name, beats: meta.beats, harmony: meta.harmony, lyrics: meta.lyrics, stems: meta.stems, stemOf: meta.stemOf };
       } catch {
         missing.push(meta.name);
         return { ...meta, status: 'error' };

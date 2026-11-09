@@ -9,6 +9,7 @@ import { Waveform } from '../timeline/Waveform';
 import { BeatGridSection } from './BeatGridSection';
 import { BeatMatchPanel } from './BeatMatchPanel';
 import { EqEditor } from './EqEditor';
+import { KeySection } from './KeySection';
 import { LyricsSection } from './LyricsSection';
 import { SectionCutter } from './SectionCutter';
 import { SoundSection } from './SoundSection';
@@ -75,6 +76,7 @@ export function AudioInspector({ clip }: { clip: AudioClip }) {
       <VolumeCurveEditor clip={clip} />
 
       <BeatGridSection clip={clip} />
+      <KeySection clip={clip} />
       <SectionCutter key={clip.id} clip={clip} />
       <BeatMatchPanel preferredBaseId={clip.id} />
       <LyricsSection clip={clip} />

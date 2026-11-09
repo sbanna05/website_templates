@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
-import { clipEnd, projectDuration, timelineBeats } from '../../engine/timeline';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { clipEnd, projectDuration, snapValue, timelineBeats } from '../../engine/timeline';
+import { timelineDownbeats } from '../../engine/sections';
+import { ASSET_DRAG_TYPE } from '../library/dnd';
+import { ChordLane } from './ChordLane';
 import { useEditor } from '../../store/editorStore';
 import { usePlayback } from '../../store/playbackStore';
 import { LAYOUT_LIMITS, trackHeightOf, useUi } from '../../store/uiStore';
 import type { Track } from '../../types/project';
 import { Splitter } from '../ui/Splitter';
 import { BeatMarkers } from './BeatMarkers';
-import { RULER_HEIGHT, TAIL_SECONDS } from './constants';
+import { RULER_HEIGHT, SNAP_PX, TAIL_SECONDS } from './constants';
 import { MarkerFlags, MarkerLines } from './Markers';
 import { MasterRow } from './MasterRow';
 import { Playhead } from './Playhead';
@@ -32,6 +35,9 @@ export function Timeline() {
   const pxPerSecond = useUi((s) => s.pxPerSecond);
   const headerWidth = useUi((s) => s.layout.headerWidth);
   const trackHeights = useUi((s) => s.trackHeights);
+  const viewHidden = useUi((s) => s.viewHidden);
+  const showChords = useUi((s) => s.showChords);
+  const [newTrackDrop, setNewTrackDrop] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const tracksRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState<Box | null>(null);
@@ -40,16 +46,18 @@ export function Timeline() {
   const span = duration + TAIL_SECONDS;
   const contentWidth = span * pxPerSecond;
   const beats = useMemo(() => timelineBeats(project, assets), [project, assets]);
+  const bars = useMemo(() => timelineDownbeats(project, assets), [project, assets]);
+  const hiddenCount = project.tracks.filter((t) => viewHidden[t.id]).length;
   const selected = useMemo(() => new Set(selectedClipIds), [selectedClipIds]);
   const rows = useMemo(
     () =>
-      project.tracks.reduce<{ track: Track; top: number; height: number }[]>((acc, track) => {
+      project.tracks.filter((t) => !viewHidden[t.id]).reduce<{ track: Track; top: number; height: number }[]>((acc, track) => {
         const previous = acc.at(-1);
         // Each row is its height plus a 1px border.
         const top = previous ? previous.top + previous.height + 1 : 0;
         return [...acc, { track, top, height: trackHeightOf(trackHeights, track) }];
       }, []),
-    [project.tracks, trackHeights],
+    [project.tracks, trackHeights, viewHidden],
   );
   const lanesHeight = rows.reduce((h, r) => h + r.height + 1, 0);
 
@@ -132,6 +140,18 @@ export function Timeline() {
 
   const { setSize, resetSize } = useUi.getState();
 
+  /** Dropping media below the last track opens a new track for it. */
+  const onNewTrackDrop = (event: DragEvent<HTMLDivElement>) => {
+    setNewTrackDrop(false);
+    const assetId = event.dataTransfer.getData(ASSET_DRAG_TYPE);
+    if (!assetId) return;
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const raw = Math.max(0, (event.clientX - rect.left - headerWidth) / pxPerSecond);
+    const start = snapValue(raw, [0, ...beats, ...project.markers.map((m) => m.time)], SNAP_PX / pxPerSecond);
+    useEditor.getState().addAssetToNewTrack(assetId, start);
+  };
+
   return (
     <section className="panel timeline" aria-label="Timeline">
       <TimelineToolbar />
@@ -139,7 +159,18 @@ export function Timeline() {
         <div className="timeline__canvas" style={{ width: headerWidth + contentWidth, '--header-w': `${headerWidth}px` } as CSSProperties}>
           <div className="timeline__ruler-row" style={{ height: RULER_HEIGHT }}>
             <div className="timeline__corner" style={{ width: headerWidth }}>
-              <span>{project.tracks.length} tracks</span>
+              {hiddenCount > 0 ? (
+                <button
+                  type="button"
+                  className="timeline__show-all"
+                  title="Some tracks are hidden from view (they still play) — show them all"
+                  onClick={() => useUi.getState().showOnly([], [])}
+                >
+                  {project.tracks.length - hiddenCount}/{project.tracks.length} shown · Show all
+                </button>
+              ) : (
+                <span>{project.tracks.length} tracks</span>
+              )}
               <Splitter
                 orientation="vertical"
                 label="Track header width"
@@ -156,6 +187,8 @@ export function Timeline() {
               <Playhead part="knob" pxPerSecond={pxPerSecond} />
             </div>
           </div>
+
+          {showChords && <ChordLane headerWidth={headerWidth} width={contentWidth} pxPerSecond={pxPerSecond} bars={bars} />}
 
           <div className="timeline__tracks" ref={tracksRef}>
             {rows.map(({ track, height }) => (
@@ -175,7 +208,7 @@ export function Timeline() {
               </div>
             ))}
             <div className="timeline__beats" style={{ left: headerWidth, height: lanesHeight }}>
-              <BeatMarkers beats={beats} manual={project.manualBeats} pxPerSecond={pxPerSecond} width={contentWidth} height={lanesHeight} />
+              <BeatMarkers beats={beats} manual={project.manualBeats} bars={bars} pxPerSecond={pxPerSecond} width={contentWidth} height={lanesHeight} />
               <MarkerLines markers={project.markers} pxPerSecond={pxPerSecond} />
             </div>
             {box && (
@@ -190,6 +223,23 @@ export function Timeline() {
                 }}
               />
             )}
+          </div>
+
+          <div
+            className={`timeline__new-track ${newTrackDrop ? 'is-dropping' : ''}`}
+            onDragOver={(e) => {
+              if (!e.dataTransfer.types.includes(ASSET_DRAG_TYPE)) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'copy';
+              setNewTrackDrop(true);
+            }}
+            onDragLeave={() => setNewTrackDrop(false)}
+            onDrop={onNewTrackDrop}
+          >
+            <span style={{ width: headerWidth }} className="timeline__new-track-label">
+              + New track
+            </span>
+            <span className="timeline__new-track-hint">Drag media here to put it on its own track</span>
           </div>
 
           <MasterRow headerWidth={headerWidth} width={contentWidth} />

@@ -1,4 +1,4 @@
-import type { BeatAnalysis } from '../types/project';
+import type { BeatAnalysis, HarmonyAnalysis } from '../types/project';
 import type { DspRequest, DspResponse } from './dspProtocol';
 
 type WithoutId<T> = T extends unknown ? Omit<T, 'id'> : never;
@@ -36,6 +36,20 @@ class DspClient {
   async detectBeats(samples: Float32Array, sampleRate: number): Promise<BeatAnalysis> {
     const response = await this.send({ type: 'beats', samples, sampleRate }, [samples.buffer]);
     if (response.ok && response.type === 'beats') return response.result;
+    throw new Error('Unexpected DSP response');
+  }
+
+  /** Beats, downbeat, key and chords in one pass. */
+  async analyzeMusic(samples: Float32Array, sampleRate: number): Promise<{ beats: BeatAnalysis; harmony: HarmonyAnalysis }> {
+    const response = await this.send({ type: 'analyze', samples, sampleRate }, [samples.buffer]);
+    if (response.ok && response.type === 'analyze') return { beats: response.beats, harmony: response.harmony };
+    throw new Error('Unexpected DSP response');
+  }
+
+  /** Key and chords only, on a known beat grid. */
+  async analyzeHarmony(samples: Float32Array, sampleRate: number, beats: number[], source: HarmonyAnalysis['source']): Promise<HarmonyAnalysis> {
+    const response = await this.send({ type: 'harmony', samples, sampleRate, beats, source }, [samples.buffer]);
+    if (response.ok && response.type === 'harmony') return response.harmony;
     throw new Error('Unexpected DSP response');
   }
 

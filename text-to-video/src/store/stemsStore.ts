@@ -77,6 +77,7 @@ export const useStems = create<StemsState>((set, get) => {
             hasAudio: true,
             waveform: computePeaks(audio),
             beats: useEditor.getState().assets[assetId]?.beats,
+            harmony: useEditor.getState().assets[assetId]?.harmony,
             stemOf: { assetId, stem },
             status: 'ready',
           };
@@ -85,6 +86,8 @@ export const useStems = create<StemsState>((set, get) => {
         }
         useEditor.getState().updateAsset(assetId, { stems: ids });
         toast(`${baseName(song.name)} split into vocals, drums, bass and melody`, 'success');
+        // Chords read much cleaner without drums and vocals in the way.
+        void useEditor.getState().analyzeHarmony(assetId);
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') toast('Stem split cancelled');
         else toast(`Stem split failed: ${error instanceof Error ? error.message : String(error)}`, 'error');

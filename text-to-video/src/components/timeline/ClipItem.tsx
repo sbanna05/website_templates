@@ -1,5 +1,5 @@
 import { useShallow } from 'zustand/react/shallow';
-import { memo, useMemo, useRef, type CSSProperties, type PointerEvent } from 'react';
+import { memo, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { isDry } from '../../audio/effects';
 import { sortKeys, volumeAt } from '../../engine/automation';
 import { isFlatEq } from '../../engine/eq';
@@ -8,6 +8,8 @@ import { clipEnd, snapValue, trimEnd, trimStart, type TrimResult } from '../../e
 import { formatSpeed } from '../../lib/time';
 import { useEditor } from '../../store/editorStore';
 import { usePlayback } from '../../store/playbackStore';
+import { useUi } from '../../store/uiStore';
+import { camelotCode, clipKey, keyShort } from '../../engine/musicTheory';
 import type { Asset, AudioClip, Clip, StemName, Track } from '../../types/project';
 import { Icon } from '../ui/Icon';
 import { SNAP_PX, acceptsClip } from './constants';
@@ -38,11 +40,27 @@ interface Drag {
 
 export const ClipItem = memo(function ClipItem({ clip, asset, track, selected, multi, pxPerSecond, beats }: ClipItemProps) {
   const dragRef = useRef<Drag | null>(null);
+  const blade = useUi((s) => s.tool === 'blade');
+  const [bladeX, setBladeX] = useState<number | null>(null);
   const stemAssets = useEditor((s) => (clip.kind === 'audio' && !isFullMix(clip.stems) ? s.assets[clip.assetId]?.stems : undefined));
+
+  /** Blade tool: the cut time under the pointer, snapped to beats, marks and the playhead. */
+  const bladeTime = (event: PointerEvent<HTMLElement>): number => {
+    const rect = event.currentTarget.closest('.clip')?.getBoundingClientRect();
+    const raw = clip.start + (event.clientX - (rect?.left ?? 0)) / pxPerSecond;
+    const { project } = useEditor.getState();
+    const candidates = [usePlayback.getState().time, ...project.markers.map((m) => m.time), ...(project.snapToBeats ? beats : [])];
+    return snapValue(raw, candidates, SNAP_PX / pxPerSecond);
+  };
 
   const startDrag = (event: PointerEvent<HTMLElement>, mode: Mode) => {
     event.stopPropagation();
     const { select, project, selectedClipIds } = useEditor.getState();
+    if (blade && event.button === 0 && !track.locked && !event.ctrlKey && !event.metaKey) {
+      // Shift-click cuts straight through every track.
+      useEditor.getState().cutAt(clip.id, bladeTime(event), event.shiftKey);
+      return;
+    }
     // Ctrl/⌘-click toggles a clip in the selection, Shift-click adds it — no drag.
     if (event.ctrlKey || event.metaKey || event.shiftKey) {
       select(clip.id, event.shiftKey ? 'add' : 'toggle');
@@ -69,7 +87,10 @@ export const ClipItem = memo(function ClipItem({ clip, asset, track, selected, m
 
   const onPointerMove = (event: PointerEvent<HTMLElement>) => {
     const drag = dragRef.current;
-    if (!drag) return;
+    if (!drag) {
+      if (blade && !track.locked) setBladeX((bladeTime(event) - clip.start) * pxPerSecond);
+      return;
+    }
     const { origin, candidates } = drag;
     const delta = (event.clientX - drag.pointerX) / pxPerSecond;
     const threshold = SNAP_PX / pxPerSecond;
@@ -110,21 +131,25 @@ export const ClipItem = memo(function ClipItem({ clip, asset, track, selected, m
   };
 
   const width = Math.max(4, clip.duration * pxPerSecond);
-  const style: CSSProperties = { left: clip.start * pxPerSecond, width };
+  const style = { left: clip.start * pxPerSecond, width } as CSSProperties & Record<'--clip-tint', string>;
+  if (track.color) style['--clip-tint'] = track.color;
   if (clip.kind === 'visual' && asset?.thumbnail) style.backgroundImage = `url(${asset.thumbnail})`;
 
   const peaksPerSecond = asset?.waveform && asset.duration > 0 ? asset.waveform.length / asset.duration : 0;
   const media = clip.kind !== 'text' ? clip : null;
+  const key = clip.kind === 'audio' ? clipKey(clip, asset) : null;
+  const bpm = clip.kind === 'audio' && asset?.beats?.bpm ? asset.beats.bpm * clip.speed : 0;
   const label = clip.kind === 'text' ? clip.text.replace(/\n/g, ' ') || 'Empty text' : (asset?.name ?? 'Missing media');
 
   return (
     <div
-      className={`clip clip--${clip.kind} ${selected ? 'is-selected' : ''} ${selected && multi ? 'is-grouped' : ''} ${track.locked ? 'is-locked' : ''}`}
+      className={`clip clip--${clip.kind} ${selected ? 'is-selected' : ''} ${selected && multi ? 'is-grouped' : ''} ${track.locked ? 'is-locked' : ''} ${track.color ? 'has-tint' : ''} ${blade ? 'is-blade' : ''}`}
       style={style}
       onPointerDown={(e) => startDrag(e, 'move')}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
+      onPointerLeave={() => setBladeX(null)}
       role="button"
       tabIndex={0}
       aria-pressed={selected}
@@ -145,6 +170,16 @@ export const ClipItem = memo(function ClipItem({ clip, asset, track, selected, m
       <div className="clip__label">
         {clip.kind === 'text' && <Icon name="text" size={13} />}
         <span className="clip__name">{label}</span>
+        {(bpm > 0 || key) && (
+          <span className="clip__badge clip__badge--deck" title={key ? `Key ${keyShort(key)} · Camelot ${camelotCode(key)}` : 'Tempo'}>
+            {bpm > 0 && <span>{bpm % 1 === 0 ? bpm : bpm.toFixed(1)}</span>}
+            {key && (
+              <span>
+                {keyShort(key)} <b>{camelotCode(key)}</b>
+              </span>
+            )}
+          </span>
+        )}
         {media && media.speed !== 1 && (
           <span className={`clip__badge ${media.speed > 1 ? 'is-fast' : 'is-slow'}`} title="Speed">
             <Icon name="gauge" size={11} />
@@ -191,7 +226,8 @@ export const ClipItem = memo(function ClipItem({ clip, asset, track, selected, m
       {clip.kind === 'visual' && clip.transitionIn.type !== 'none' && (
         <span className="clip__transition" style={{ width: clip.transitionIn.duration * pxPerSecond }} />
       )}
-      {!track.locked && (
+      {blade && bladeX !== null && <span className="clip__blade" style={{ left: bladeX }} aria-hidden="true" />}
+      {!track.locked && !blade && (
         <>
           <span className="clip__handle clip__handle--start" onPointerDown={(e) => startDrag(e, 'trim-start')} aria-hidden="true" />
           <span className="clip__handle clip__handle--end" onPointerDown={(e) => startDrag(e, 'trim-end')} aria-hidden="true" />

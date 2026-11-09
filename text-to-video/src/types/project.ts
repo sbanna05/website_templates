@@ -26,6 +26,42 @@ export interface BeatAnalysis {
   grid?: BeatGrid;
   /** The detector's original result, kept so a hand-made grid can be reset. */
   detected?: { bpm: number; beats: number[] };
+  /** True when the song holds one tempo, so the beats form an exact grid (DJ-style). */
+  steady?: boolean;
+  /** 0–1: how well the tracked beats agree with the grid. */
+  confidence?: number;
+}
+
+/** Pitch class: 0 = C, 1 = C♯/D♭ … 11 = B. */
+export type PitchClass = number;
+
+export type ChordQuality = 'maj' | 'min';
+
+/** One chord, in seconds of the source file. `root` -1 means no chord (silence, drums only…). */
+export interface ChordSegment {
+  start: number;
+  end: number;
+  root: PitchClass;
+  quality: ChordQuality;
+  /** Bass note when it isn't the root — shown as a slash chord (C/E). */
+  bass?: PitchClass;
+}
+
+export interface MusicalKey {
+  tonic: PitchClass;
+  mode: 'major' | 'minor';
+  /** 0–1. */
+  confidence: number;
+}
+
+/** Key and chord progression of a song (see `audio/harmony.ts`). */
+export interface HarmonyAnalysis {
+  key: MusicalKey | null;
+  /** How far the recording sits from A = 440 Hz, in cents. */
+  tuning: number;
+  chords: ChordSegment[];
+  /** Where the analysis was made from: the full mix, or the bass + melody stems (cleaner). */
+  source: 'mix' | 'stems';
 }
 
 /** Parts of a song an AI stem split produces. "other" is everything else — melody, synths, guitars. */
@@ -69,6 +105,8 @@ export interface Asset {
   /** Normalised 0–1 peaks across the whole file, for waveform drawing. */
   waveform?: number[];
   beats?: BeatAnalysis;
+  /** Key and chords. */
+  harmony?: HarmonyAnalysis;
   /** Words detected in the audio (auto lyrics / captions), in seconds of the source file. */
   lyrics?: LyricTranscript;
   /** Asset ids of this song's separated stems, once it has been split. */
@@ -87,6 +125,12 @@ export interface Track {
   muted: boolean;
   hidden: boolean;
   locked: boolean;
+  /** Only soloed tracks are heard while any track is soloed (audio). */
+  solo?: boolean;
+  /** Custom colour for the header and its clips; unset = the colour of its kind. */
+  color?: string;
+  /** Set on tracks that hold one stem of a split song. */
+  stem?: StemName;
 }
 
 export interface Transform {

@@ -106,6 +106,8 @@ export const useSaveStatus = create<SaveState>((set, get) => {
       const restored = await load();
       useEditor.getState().loadProject(restored.project, restored.assets);
       usePlayback.getState().seek(0);
+      // Projects saved before key/chord detection existed get it now, in the background.
+      useEditor.getState().analyzeMissingHarmony();
       if (restored.missing.length) {
         toast(`Some media could not be loaded: ${restored.missing.slice(0, 3).join(', ')}${restored.missing.length > 3 ? '…' : ''}`, 'error');
       }

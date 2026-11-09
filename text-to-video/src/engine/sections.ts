@@ -45,6 +45,14 @@ export function timelineBars(clip: AudioClip, asset: Asset | undefined, until: n
   return bars;
 }
 
+/** Bar lines (downbeats) of the main beat on the timeline — what the grid draws strong and "sync on bar" uses. */
+export function timelineDownbeats(project: Project, assets: Record<string, Asset>): number[] {
+  const main = mainBeatClip(project, assets);
+  if (!main) return [];
+  const end = clipEnd(main);
+  return timelineBars(main, assets[main.assetId], end).filter((t) => t < end - 1e-6);
+}
+
 /** Snaps a source time to the nearest beat (or bar) of the song. */
 export function snapToGrid(time: number, grid: readonly number[]): number {
   let best = time;

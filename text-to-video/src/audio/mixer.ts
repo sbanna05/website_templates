@@ -47,9 +47,12 @@ export function clipLayers(clip: AudioClip, asset: Asset | undefined): MixLayer[
 
 export function collectMixSources(project: Project, assets: Record<string, Asset>): MixSource[] {
   const muted = new Set(project.tracks.filter((t) => t.muted).map((t) => t.id));
+  // Solo, mixing-desk style: while any track is soloed, only soloed tracks are heard.
+  const soloed = new Set(project.tracks.filter((t) => t.solo).map((t) => t.id));
   const sources: MixSource[] = [];
   for (const clip of project.clips) {
     if (clip.kind === 'text' || muted.has(clip.trackId) || clip.volume <= 0) continue;
+    if (soloed.size > 0 && !soloed.has(clip.trackId)) continue;
     if (clip.kind === 'visual' && !assets[clip.assetId]?.hasAudio) continue;
     const layers = clip.kind === 'audio' ? clipLayers(clip, assets[clip.assetId]) : [{ assetId: clip.assetId, gain: 1 }];
     if (layers.length === 0) continue;

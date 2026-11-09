@@ -13,6 +13,7 @@ export const SHORTCUTS: [string, string][] = [
   ['Space', 'Play / pause'],
   ['← / →', 'Step one frame (Shift: 1 s)'],
   ['S', 'Split at playhead'],
+  ['V / C', 'Select tool / Blade tool (click a clip to cut, Shift-click cuts all tracks)'],
   ['B', 'Tap a beat marker'],
   ['M', 'Add a mark at the playhead'],
   ['T', 'Add text at playhead'],
@@ -54,6 +55,8 @@ export function useKeyboardShortcuts(): void {
         b: () => editor.addManualBeat(playback.time),
         t: () => editor.addText(playback.time),
         m: () => editor.addMarker(playback.time),
+        v: () => !mod && useUi.getState().setTool('select'),
+        c: () => !mod && useUi.getState().setTool('blade'),
         delete: () => editor.deleteClips(editor.selectedClipIds),
         backspace: () => editor.deleteClips(editor.selectedClipIds),
         d: () => editor.duplicateClips(editor.selectedClipIds),
@@ -69,6 +72,8 @@ export function useKeyboardShortcuts(): void {
       const handler = handlers[key];
       if (!handler) return;
       if (['d', 'z', 'y', 'a', 'j'].includes(key) && !mod) return;
+      // Leave Ctrl/⌘ + C / V to the browser (copy & paste).
+      if (['c', 'v'].includes(key) && mod) return;
       event.preventDefault();
       handler();
     };

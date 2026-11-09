@@ -4,6 +4,9 @@ import type { TrackKind } from '../types/project';
 
 export type LibraryTab = 'media' | 'audio' | 'text';
 
+/** Timeline pointer tool: Select (move, trim) or Blade (click a clip to cut it). */
+export type EditTool = 'select' | 'blade';
+
 /** Sizes the user can drag. Each has a range and a default (double-click a handle to restore it). */
 export const LAYOUT_LIMITS = {
   libraryWidth: { min: 220, max: 520, initial: 300 },
@@ -63,6 +66,16 @@ interface UiState {
   layout: PanelLayout;
   /** Heights of tracks the user resized; others use the default for their kind. */
   trackHeights: Record<string, number>;
+  tool: EditTool;
+  /** Tracks hidden from the timeline view (they still play and render). */
+  viewHidden: Record<string, true>;
+  /** Show the chord row above the tracks. */
+  showChords: boolean;
+  setTool: (tool: EditTool) => void;
+  setViewHidden: (trackId: string, hidden: boolean) => void;
+  /** Shows only `keep` out of `all` tracks; an empty `keep` shows everything. */
+  showOnly: (keep: readonly string[], all: readonly string[]) => void;
+  toggleChords: () => void;
   setZoom: (pxPerSecond: number) => void;
   zoomBy: (factor: number) => void;
   setLibraryTab: (tab: LibraryTab) => void;
@@ -81,6 +94,24 @@ export const useUi = create<UiState>((set) => ({
   exportOpen: false,
   layout: loadLayout(),
   trackHeights: {},
+  tool: 'select',
+  viewHidden: {},
+  showChords: true,
+  setTool: (tool) => set({ tool }),
+  setViewHidden: (trackId, hidden) =>
+    set((s) => {
+      const viewHidden = { ...s.viewHidden };
+      if (hidden) viewHidden[trackId] = true;
+      else delete viewHidden[trackId];
+      return { viewHidden };
+    }),
+  showOnly: (keep, all) =>
+    set(() => {
+      if (keep.length === 0) return { viewHidden: {} };
+      const kept = new Set(keep);
+      return { viewHidden: Object.fromEntries(all.filter((id) => !kept.has(id)).map((id) => [id, true as const])) };
+    }),
+  toggleChords: () => set((s) => ({ showChords: !s.showChords })),
   setZoom: (pxPerSecond) => set({ pxPerSecond: clamp(pxPerSecond, ZOOM_RANGE.min, ZOOM_RANGE.max) }),
   zoomBy: (factor) => set((s) => ({ pxPerSecond: clamp(s.pxPerSecond * factor, ZOOM_RANGE.min, ZOOM_RANGE.max) })),
   setLibraryTab: (libraryTab) => set({ libraryTab }),

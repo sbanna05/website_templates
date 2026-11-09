@@ -51,6 +51,12 @@ const PATHS = {
   curve: 'M3 18c3 0 4-11 8-11s4 7 6 7 2-3 4-3M3 21h18',
   mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM5 11a7 7 0 0 0 14 0M12 18v3M8 21h8',
   crown: 'M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z',
+  cursor: 'M5 3l14 7.5-6 1.5-2.5 6.5z',
+  target: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM12 12h.01',
+  grip: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01',
+  palette: 'M12 21a9 9 0 1 1 9-9c0 2.5-2 3.5-4 3.5h-2a2 2 0 0 0-1.5 3.3A1.5 1.5 0 0 1 12 21ZM7.5 11h.01M10 7h.01M15 7.5h.01',
+  chord: 'M4 4h16v16H4zM9 4v10M15 4v10M7 14h4M13 14h4M9 14v6M15 14v6',
+  stack: 'M4 6h16M4 12h16M4 18h16',
 } as const;
 
 export type IconName = keyof typeof PATHS;

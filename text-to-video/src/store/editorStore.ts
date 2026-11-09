@@ -17,13 +17,14 @@ import { matchBeats, type BeatMatchOptions } from '../engine/beatMatch';
 import { resetGrid, withGrid } from '../engine/beatGrid';
 import { buildCaptions, cleanWords, wordsOnTimeline, type CaptionMode } from '../engine/captions';
 import { backToBack, healClips, mergeBlocker, spanOf, type MergeLayout } from '../engine/merge';
-import { mainBeatClip, placeSection } from '../engine/sections';
+import { mainBeatClip, placeSection, timelineDownbeats } from '../engine/sections';
 import { FULL_STEM_MIX, STEMS, stemGains } from '../engine/stems';
 import { clipEnd, isMediaClip, splitClip, splitTextToBeats, syncTrackToBeats, timelineBeats, trackEnd } from '../engine/timeline';
 import { createId } from '../lib/id';
 import { kindOf, loadAsset } from '../media/assetLoader';
 import { mediaRegistry } from '../media/mediaRegistry';
-import { monoForAnalysis } from '../media/waveform';
+import { monoForAnalysis, monoMixForAnalysis } from '../media/waveform';
+import { camelotCode, keyName } from '../engine/musicTheory';
 import type {
   Asset,
   AspectRatio,
@@ -33,6 +34,7 @@ import type {
   Marker,
   MasterSettings,
   Project,
+  StemName,
   Track,
   TrackKind,
 } from '../types/project';
@@ -114,15 +116,25 @@ interface EditorState {
   splitSelected: (time: number) => void;
   mergeClips: (clipIds: readonly string[], layout: MergeLayout) => Promise<void>;
   extractStems: (clipId: string) => void;
+  /** Blade tool: cuts one clip at `time` (or every unlocked clip under `time` when `allTracks`). */
+  cutAt: (clipId: string, time: number, allTracks?: boolean) => void;
+  /** Drops an asset onto a brand-new track of the right kind. */
+  addAssetToNewTrack: (assetId: string, start: number) => void;
 
   addTrack: (kind: TrackKind) => void;
   updateTrack: (trackId: string, patch: Partial<Track>, coalesceKey?: string) => void;
   removeTrack: (trackId: string) => void;
+  /** Moves a track to another position in the stack. */
+  moveTrack: (trackId: string, toIndex: number) => void;
+  /** Re-reads key and chords — from the bass + melody stems when the song has been split. */
+  analyzeHarmony: (assetId: string) => Promise<void>;
+  /** Runs key/chord detection for songs saved before it existed. */
+  analyzeMissingHarmony: () => void;
 
   addManualBeat: (time: number) => void;
   clearManualBeats: () => void;
   toggleSnap: () => void;
-  syncToBeats: (trackId: string, beatsPerClip: number, source?: SyncSource) => void;
+  syncToBeats: (trackId: string, beatsPerClip: number, source?: SyncSource, onBar?: boolean) => void;
   splitTextOnBeats: (clipId: string, unit: 'word' | 'line', beatsPer: number) => void;
   matchBeats: (options: BeatMatchOptions) => void;
   setMainBeat: (clipId: string) => void;
@@ -139,6 +151,14 @@ interface EditorState {
   removeMarker: (markerId: string) => void;
   clearMarkers: () => void;
 }
+
+/** Default colours of stem tracks — the stem's own hue, so vocals always look like vocals. */
+export const STEM_TRACK_COLORS: Record<StemName, string> = {
+  vocals: '#7fa892',
+  drums: '#6f8fa8',
+  bass: '#8b7fa3',
+  other: '#b09a6e',
+};
 
 const mapClips = (project: Project, fn: (clip: Clip) => Clip): Project => ({ ...project, clips: project.clips.map(fn) });
 
@@ -188,12 +208,13 @@ export const useEditor = create<EditorState>((set, get) => {
     if (!buffer) return;
     try {
       const { samples, sampleRate } = monoForAnalysis(buffer);
-      const beats = await dsp.detectBeats(samples, sampleRate);
+      const { beats, harmony } = await dsp.analyzeMusic(samples, sampleRate);
       const current = get().assets[asset.id];
-      if (current) setAsset({ ...current, beats });
-      if (beats.bpm > 0) toast(`${asset.name}: ${Math.round(beats.bpm)} BPM detected`, 'success');
+      if (current) setAsset({ ...current, beats, harmony });
+      const key = harmony.key ? ` · ${keyName(harmony.key)} (${camelotCode(harmony.key)})` : '';
+      if (beats.bpm > 0) toast(`${asset.name}: ${beats.bpm % 1 === 0 ? beats.bpm : beats.bpm.toFixed(1)} BPM${key}`, 'success');
     } catch (error) {
-      toast(`Beat detection failed: ${String(error)}`, 'error');
+      toast(`Music analysis failed: ${String(error)}`, 'error');
     }
   };
 
@@ -443,7 +464,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const stems = clip ? assets[clip.assetId]?.stems : undefined;
       if (!clip || !stems) return;
       // One track per stem, right below the song's track, each playing that stem in the same place.
-      const tracks = STEMS.map((stem) => createTrack('audio', stem.label));
+      const tracks = STEMS.map((stem) => ({ ...createTrack('audio', stem.label), stem: stem.id, color: STEM_TRACK_COLORS[stem.id] }));
       const gains = stemGains(clip.stems ?? FULL_STEM_MIX);
       const clips: AudioClip[] = STEMS.map((stem, i) => {
         return {
@@ -468,6 +489,35 @@ export const useEditor = create<EditorState>((set, get) => {
       toast('Stems placed on their own tracks — edit, cut or move each one', 'success');
     },
 
+    cutAt: (clipId, time, allTracks = false) => {
+      const { project } = get();
+      const locked = new Set(project.tracks.filter((t) => t.locked).map((t) => t.id));
+      const targets = project.clips.filter((c) =>
+        allTracks ? !locked.has(c.trackId) && time > c.start && time < clipEnd(c) : c.id === clipId,
+      );
+      const replacements = new Map<string, [Clip, Clip]>();
+      for (const clip of targets) {
+        const parts = splitClip(clip, time);
+        if (parts) replacements.set(clip.id, parts);
+      }
+      if (replacements.size === 0) return;
+      get().commit((p) => ({ ...p, clips: p.clips.flatMap((c) => replacements.get(c.id) ?? [c]) }));
+      const right = replacements.get(clipId)?.[1];
+      if (right) get().select(right.id);
+    },
+
+    addAssetToNewTrack: (assetId, start) => {
+      const asset = get().assets[assetId];
+      if (!asset || asset.status !== 'ready') return;
+      const kind: TrackKind = asset.kind === 'audio' ? 'audio' : 'visual';
+      const count = get().project.tracks.filter((t) => t.kind === kind).length;
+      const stem = asset.stemOf?.stem;
+      const label = stem ? STEMS.find((x) => x.id === stem)?.label : undefined;
+      const track = { ...createTrack(kind, label ?? `${createTrack(kind).name} ${count + 1}`), ...(stem ? { stem, color: STEM_TRACK_COLORS[stem] } : {}) };
+      get().commit((p) => ({ ...p, tracks: kind === 'audio' ? [...p.tracks, track] : [track, ...p.tracks] }));
+      get().addAssetToTimeline(assetId, { trackId: track.id, start });
+    },
+
     addTrack: (kind) => {
       const track = createTrack(kind, `${createTrack(kind).name} ${get().project.tracks.filter((t) => t.kind === kind).length + 1}`);
       get().commit((p) => ({ ...p, tracks: kind === 'audio' ? [...p.tracks, track] : [track, ...p.tracks] }));
@@ -486,12 +536,50 @@ export const useEditor = create<EditorState>((set, get) => {
         clips: p.clips.filter((c) => c.trackId !== trackId),
       })),
 
+    moveTrack: (trackId, toIndex) =>
+      get().commit((p) => {
+        const from = p.tracks.findIndex((t) => t.id === trackId);
+        const to = Math.max(0, Math.min(p.tracks.length - 1, toIndex));
+        if (from < 0 || from === to) return p;
+        const tracks = [...p.tracks];
+        const [track] = tracks.splice(from, 1);
+        tracks.splice(to, 0, track);
+        return { ...p, tracks };
+      }),
+
+    analyzeHarmony: async (assetId) => {
+      const asset = get().assets[assetId];
+      const root = asset?.stemOf ? get().assets[asset.stemOf.assetId] : asset;
+      if (!root) return;
+      // Harmony is clearest without drums and vocals: use bass + melody stems when they exist.
+      const stemIds = root.stems ? [root.stems.bass, root.stems.other] : [];
+      const buffers = (stemIds.length ? stemIds : [root.id]).map((id) => mediaRegistry.get(id)?.audio).filter((b): b is AudioBuffer => Boolean(b));
+      if (buffers.length === 0) return;
+      try {
+        const { samples, sampleRate } = monoMixForAnalysis(buffers);
+        const source = stemIds.length && buffers.length === stemIds.length ? 'stems' : 'mix';
+        const harmony = await dsp.analyzeHarmony(samples, sampleRate, root.beats?.beats ?? [], source);
+        for (const id of stemFamily(root.id)) {
+          const current = get().assets[id];
+          if (current) setAsset({ ...current, harmony });
+        }
+      } catch (error) {
+        toast(`Key detection failed: ${String(error)}`, 'error');
+      }
+    },
+
+    analyzeMissingHarmony: () => {
+      for (const asset of Object.values(get().assets)) {
+        if (asset.kind === 'audio' && asset.status === 'ready' && !asset.stemOf && !asset.harmony) void get().analyzeHarmony(asset.id);
+      }
+    },
+
     addManualBeat: (time) =>
       get().commit((p) => ({ ...p, manualBeats: [...p.manualBeats, time].sort((a, b) => a - b) })),
     clearManualBeats: () => get().commit((p) => ({ ...p, manualBeats: [] })),
     toggleSnap: () => get().commit((p) => ({ ...p, snapToBeats: !p.snapToBeats })),
 
-    syncToBeats: (trackId, beatsPerClip, source = 'beats') => {
+    syncToBeats: (trackId, beatsPerClip, source = 'beats', onBar = false) => {
       const { project, assets } = get();
       const points =
         source === 'marks' ? project.markers.map((m) => m.time).sort((a, b) => a - b) : timelineBeats(project, assets);
@@ -504,7 +592,8 @@ export const useEditor = create<EditorState>((set, get) => {
         );
         return;
       }
-      get().commit((p) => ({ ...p, clips: syncTrackToBeats(p, assets, trackId, points, beatsPerClip) }));
+      const bars = onBar && source === 'beats' ? timelineDownbeats(project, assets) : undefined;
+      get().commit((p) => ({ ...p, clips: syncTrackToBeats(p, assets, trackId, points, beatsPerClip, { bars }) }));
       const what = source === 'marks' ? 'mark' : 'beat';
       toast(`Synced — every ${beatsPerClip} ${what}${beatsPerClip > 1 ? 's' : ''}`, 'success');
     },
