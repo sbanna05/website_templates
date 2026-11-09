@@ -94,6 +94,8 @@ interface EditorState {
   setAspect: (aspect: AspectRatio) => void;
   setBackground: (color: string) => void;
 
+  /** Replaces everything with another project (open, restore, new). Clears undo history and selection. */
+  loadProject: (project: Project, assets: Record<string, Asset>) => void;
   importFiles: (files: File[]) => Promise<void>;
   removeAsset: (assetId: string) => void;
   updateAsset: (assetId: string, patch: Partial<Asset>) => void;
@@ -261,6 +263,18 @@ export const useEditor = create<EditorState>((set, get) => {
     setName: (name) => get().commit((p) => ({ ...p, name }), 'name'),
     setAspect: (aspect) => get().commit((p) => ({ ...p, aspect })),
     setBackground: (backgroundColor) => get().commit((p) => ({ ...p, backgroundColor }), 'background'),
+
+    loadProject: (project, assets) =>
+      set({
+        project,
+        assets,
+        selectedClipIds: [],
+        selectedClipId: null,
+        masterSelected: false,
+        past: [],
+        future: [],
+        lastEdit: null,
+      }),
 
     importFiles: async (files) => {
       const accepted = files.filter((file) => {

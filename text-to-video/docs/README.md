@@ -13,6 +13,7 @@ does for the person editing, which files implement it, and the maths or audio gr
 | [Mixing](mixing.md) | The EQ (and the maths behind its curve), the master bus (glue, limiter, meters), merging parts |
 | [Music sync](music-sync.md) | Beat detection, editing the beat grid (BPM, downbeat, tap tempo), sync cuts, beat match, the main beat and song parts |
 | [Auto lyrics](lyrics.md) | Speech-to-text with Whisper in the browser and turning words into captions |
+| [Saving](saving.md) | Autosave and session restore, `.articvid` project files, crash safety, the save format |
 | [Export](export.md) | How the MP4 is rendered, encoded and muxed without a server |
 | [UI & design system](ui.md) | Resizable layout, inspector panels, controls, tokens, accessibility and shortcuts |
 | [Extending ArticVid](extending.md) | Step-by-step recipes: add a motion, transition, sound preset, text animation, light… |

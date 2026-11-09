@@ -75,6 +75,28 @@ export function trimEnd(clip: Clip, newEnd: number, asset: Asset | undefined): T
   return { start: clip.start, duration };
 }
 
+interface Span {
+  start: number;
+  end: number;
+}
+
+/**
+ * Neighbouring pairs on one lane where the later span starts before the earlier
+ * one ends *and plays on past it* — a DJ-style hand-over, which gets a crossfade.
+ * A span sitting entirely inside a longer one is layered on top instead.
+ * Shared by the mixer (fades) and the timeline (the drawn ✕ zones).
+ */
+export function handOvers<T extends Span>(spans: readonly T[]): [T, T][] {
+  const sorted = [...spans].sort((a, b) => a.start - b.start || a.end - b.end);
+  const pairs: [T, T][] = [];
+  for (let i = 1; i < sorted.length; i += 1) {
+    const earlier = sorted[i - 1];
+    const later = sorted[i];
+    if (later.start < earlier.end && later.end > earlier.end) pairs.push([earlier, later]);
+  }
+  return pairs;
+}
+
 /** Closest candidate within `threshold`, else the value itself. */
 export function snapValue(value: number, candidates: readonly number[], threshold: number): number {
   let best = value;

@@ -98,5 +98,7 @@ Motion respects `prefers-reduced-motion` (GSAP intro, Lenis and the indeterminat
 | `Del` | Delete the selected clips (or curve point, inside the curve editor) |
 | `Ctrl D` | Duplicate the selected clips |
 | `Ctrl J` | Merge (join) the selected parts |
+| `Ctrl S` / `Ctrl ⇧ S` | Save / save as project file |
+| `Ctrl O` | Open a project file |
 | `Ctrl Z` / `Ctrl ⇧ Z` | Undo / redo |
 | `+` / `−` | Zoom the timeline |

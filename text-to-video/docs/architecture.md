@@ -9,6 +9,7 @@
 | Engine | `src/engine/` | Pure maths: timeline, rendering, beats, beat grid, beat match, sections, automation, captions, EQ response, stem gains, merge | React, stores |
 | Audio | `src/audio/` | Web Audio graphs, DSP (beat detection, time-stretch) in a worker | React |
 | Lyrics | `src/lyrics/` | Whisper worker + client | React, project data |
+| Persistence | `src/persistence/` | Save format, snapshot/restore, IndexedDB autosave, `.articvid` files | React |
 | Stems | `src/stems/` | HTDemucs worker + client (AI source separation) | React, project data |
 | Media | `src/media/` | Decoding files, waveform peaks, live `<video>` frames, the media registry | Undo history |
 | Export | `src/export/` | WebCodecs decode/encode + MP4 mux (lazy-loaded) | React |
@@ -40,6 +41,7 @@ stem split the ids of its **stems** (stem assets point back with `stemOf`).
 | Lyrics | `store/lyricsStore.ts` | Progress of running word-detection jobs (kept out of undo history) |
 | Stems | `store/stemsStore.ts` | Progress of a running stem split; creates the stem assets when done |
 | UI | `store/uiStore.ts` | Panel tabs, timeline zoom, resizable panel sizes (persisted), track heights |
+| Save | `store/saveStore.ts` | Autosave status, the project file being edited, Save / Open / New |
 | Toasts | `store/toastStore.ts` | Notifications |
 
 ### Undo / redo

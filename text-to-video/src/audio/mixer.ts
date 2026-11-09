@@ -1,6 +1,6 @@
 import { sortKeys, sampleVolume } from '../engine/automation';
 import { STEM_NAMES, isFullMix, stemGains } from '../engine/stems';
-import { clipEnd } from '../engine/timeline';
+import { clipEnd, handOvers } from '../engine/timeline';
 import type { Asset, AudioClip, AudioEffects, EqSettings, Project, VolumeKey } from '../types/project';
 import { audioBufferCache } from './audioBufferCache';
 import { connectEffects } from './effects';
@@ -81,14 +81,8 @@ export function crossfadeOverlaps(sources: readonly MixSource[]): MixSource[] {
   const byTrack = new Map<string, MixSource[]>();
   for (const source of result) byTrack.set(source.trackId, [...(byTrack.get(source.trackId) ?? []), source]);
   for (const track of byTrack.values()) {
-    track.sort((a, b) => a.start - b.start);
-    for (let i = 1; i < track.length; i += 1) {
-      const earlier = track[i - 1];
-      const later = track[i];
+    for (const [earlier, later] of handOvers(track)) {
       const overlap = earlier.end - later.start;
-      // Only a hand-over (the later song outlasts the earlier one) is a crossfade; a part placed
-      // inside a longer song is layered on top, so the song keeps playing after it.
-      if (overlap <= 0 || later.end <= earlier.end) continue;
       earlier.fadeOut = Math.max(earlier.fadeOut, overlap);
       later.fadeIn = Math.max(later.fadeIn, overlap);
     }

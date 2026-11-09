@@ -13,6 +13,8 @@ const PATHS = {
   copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
   plus: 'M12 5v14M5 12h14',
   minus: 'M5 12h14',
+  save: 'M5 3h11l3 3v15H5zM8 3v5h8V3M8 21v-7h8v7',
+  folder: 'M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
   'panel-left': 'M4 4h16v16H4zM9 4v16',
   'panel-right': 'M4 4h16v16H4zM15 4v16',
   music: 'M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',

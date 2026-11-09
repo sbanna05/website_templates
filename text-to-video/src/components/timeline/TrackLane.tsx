@@ -1,5 +1,5 @@
 import { useMemo, useState, type DragEvent, type PointerEvent } from 'react';
-import { clipEnd, snapValue } from '../../engine/timeline';
+import { clipEnd, handOvers, snapValue } from '../../engine/timeline';
 import { useEditor } from '../../store/editorStore';
 import type { Asset, Clip, Track } from '../../types/project';
 import { ASSET_DRAG_TYPE } from '../library/dnd';
@@ -59,9 +59,10 @@ export function TrackLane({ track, clips, assets, selected, pxPerSecond, beats, 
       onDragLeave={() => setDropping(false)}
       onDrop={onDrop}
     >
-      {overlaps.map(([from, to]) => (
+      {overlaps.map(([from, to], i) => (
         <span
-          key={`${from}-${to}`}
+          // Several pairs can share a time range, so the position in the list keeps keys unique.
+          key={i}
           className="track-lane__xfade"
           style={{ left: from * pxPerSecond, width: (to - from) * pxPerSecond }}
           title="Crossfade — one song fades into the other here"
@@ -83,13 +84,7 @@ export function TrackLane({ track, clips, assets, selected, pxPerSecond, beats, 
   );
 }
 
-/** Time ranges where consecutive clips on a lane overlap. */
+/** Crossfade ranges on a lane — the same hand-overs the mixer fades. */
 function overlapZones(clips: readonly Clip[]): [number, number][] {
-  const sorted = [...clips].sort((a, b) => a.start - b.start);
-  const zones: [number, number][] = [];
-  for (let i = 1; i < sorted.length; i += 1) {
-    const end = Math.min(clipEnd(sorted[i - 1]), clipEnd(sorted[i]));
-    if (end > sorted[i].start + 0.01) zones.push([sorted[i].start, end]);
-  }
-  return zones;
+  return handOvers(clips.map((clip) => ({ start: clip.start, end: clipEnd(clip) }))).map(([earlier, later]) => [later.start, earlier.end]);
 }

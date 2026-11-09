@@ -4,6 +4,7 @@ import { useUi } from '../../store/uiStore';
 import { Button, IconButton } from '../ui/Button';
 import { Segmented } from '../ui/Segmented';
 import { ShinyText } from '../ui/ShinyText';
+import { ProjectMenu } from './ProjectMenu';
 
 export function TopBar() {
   const name = useEditor((s) => s.project.name);
@@ -24,6 +25,8 @@ export function TopBar() {
         </span>
         <ShinyText text="ArticVid" className="brand-name" />
       </div>
+
+      <ProjectMenu />
 
       <input
         className="topbar__name"

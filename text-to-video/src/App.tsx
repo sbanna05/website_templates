@@ -1,5 +1,5 @@
 import { gsap } from 'gsap';
-import { useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react';
 import { ExportDialog } from './components/export/ExportDialog';
 import { Inspector } from './components/inspector/Inspector';
 import { TopBar } from './components/layout/TopBar';
@@ -7,10 +7,12 @@ import { MediaLibrary } from './components/library/MediaLibrary';
 import { PreviewPanel } from './components/preview/PreviewPanel';
 import { Timeline } from './components/timeline/Timeline';
 import { Icon } from './components/ui/Icon';
+import { PanelBoundary } from './components/ui/PanelBoundary';
 import { Splitter } from './components/ui/Splitter';
 import { Toaster } from './components/ui/Toaster';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useEditor } from './store/editorStore';
+import { useSaveStatus } from './store/saveStore';
 import { LAYOUT_LIMITS, useUi } from './store/uiStore';
 
 const hasFiles = (event: DragEvent) => event.dataTransfer.types.includes('Files');
@@ -20,7 +22,13 @@ export default function App() {
   const [fileOver, setFileOver] = useState(false);
   const layout = useUi((s) => s.layout);
   const { setSize, resetSize } = useUi.getState();
+  const busy = useSaveStatus((s) => s.busy);
   useKeyboardShortcuts();
+
+  // Bring back the last session (autosave), then keep saving every change.
+  useEffect(() => {
+    void useSaveStatus.getState().init();
+  }, []);
 
   // Panel sizes are CSS variables, so the grid (and its responsive fallbacks) stays in CSS.
   // Side panels are capped relative to the window so the preview never gets squeezed out on small screens.
@@ -64,7 +72,11 @@ export default function App() {
         data-library={layout.libraryOpen ? 'open' : 'closed'}
         data-inspector={layout.inspectorOpen ? 'open' : 'closed'}
       >
-        {layout.libraryOpen && <MediaLibrary />}
+        {layout.libraryOpen && (
+          <PanelBoundary name="library" className="library">
+            <MediaLibrary />
+          </PanelBoundary>
+        )}
         {layout.libraryOpen && (
           <Splitter
             orientation="vertical"
@@ -76,7 +88,9 @@ export default function App() {
             onReset={() => resetSize('libraryWidth')}
           />
         )}
-        <PreviewPanel />
+        <PanelBoundary name="preview" className="preview">
+          <PreviewPanel />
+        </PanelBoundary>
         {layout.inspectorOpen && (
           <Splitter
             orientation="vertical"
@@ -89,7 +103,11 @@ export default function App() {
             onReset={() => resetSize('inspectorWidth')}
           />
         )}
-        {layout.inspectorOpen && <Inspector />}
+        {layout.inspectorOpen && (
+          <PanelBoundary name="inspector" className="inspector">
+            <Inspector />
+          </PanelBoundary>
+        )}
         <Splitter
           orientation="horizontal"
           label="Timeline height"
@@ -100,10 +118,18 @@ export default function App() {
           onChange={(v) => setSize('timelineHeight', v)}
           onReset={() => resetSize('timelineHeight')}
         />
-        <Timeline />
+        <PanelBoundary name="timeline" className="timeline">
+          <Timeline />
+        </PanelBoundary>
       </main>
       <ExportDialog />
       <Toaster />
+      {busy && (
+        <div className="busy-overlay" role="status" aria-live="polite">
+          <span className="spinner" aria-hidden="true" />
+          <span>{busy}</span>
+        </div>
+      )}
       {fileOver && (
         <div className="file-overlay" aria-hidden="true">
           <div>

@@ -21,6 +21,11 @@ export const mediaRegistry = {
     const current = handles.get(assetId);
     if (current) handles.set(assetId, { ...current, ...patch });
   },
+  /** Drops every handle (and its object URL) — used when another project is opened. */
+  clear: (): void => {
+    for (const handle of handles.values()) if (handle.url) URL.revokeObjectURL(handle.url);
+    handles.clear();
+  },
   remove: (assetId: string): void => {
     const handle = handles.get(assetId);
     if (handle?.url) URL.revokeObjectURL(handle.url);

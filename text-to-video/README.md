@@ -129,6 +129,14 @@ npm run dev        # http://localhost:5173
   colour, angle and an optional pulse on the beat, and follows the image as it moves and zooms.
 - Volume and fades per clip. Video clips keep their own audio, which can be pitched too.
 
+### Saving
+
+- **Autosave**: every change is saved in the browser about a second later, and your last session comes back
+  when you reopen ArticVid. A status next to *Project* shows when it last saved.
+- **Project files** (`.articvid`): *Project → Save / Save as / Open* (`Ctrl S`, `Ctrl ⇧ S`, `Ctrl O`). One
+  self-contained file with all media — for backups, versions and moving to another computer.
+- **Crash-safe panels**: if a panel ever fails, only that panel shows *Try again*; the project is untouched.
+
 ### Preview and export
 
 - A live canvas preview at the native aspect ratio: **9:16, 16:9, 1:1 or 4:5**.
@@ -149,6 +157,8 @@ npm run dev        # http://localhost:5173
 | `Del` | Delete the selected clips |
 | `Ctrl D` | Duplicate the selected clips |
 | `Ctrl J` | Merge the selected parts |
+| `Ctrl S` / `Ctrl ⇧ S` | Save / save as project file |
+| `Ctrl O` | Open a project file |
 | `Ctrl Z` / `Ctrl ⇧ Z` | Undo / redo |
 | `+` / `−` | Zoom the timeline |
 
@@ -199,6 +209,7 @@ src/
 ├─ stems/                  HTDemucs stem-separation worker (demucs-web + ONNX Runtime) + client
 ├─ media/                  File import, waveform peaks, live <video> frame source
 ├─ export/                 WebCodecs frame decoding + MP4 muxing (lazy-loaded)
+├─ persistence/            Save format, autosave (IndexedDB) and .articvid project files
 ├─ store/                  zustand: editor (with history), playback, lyrics and stem jobs, UI layout, toasts
 ├─ hooks/                  Lenis smooth scroll, keyboard shortcuts, element size
 ├─ components/             UI by area: library, preview, timeline, inspector, export, ui
@@ -255,6 +266,7 @@ inset top highlight, and **inset wells** for inputs, sliders and segmented contr
 | [Transformers.js](https://github.com/huggingface/transformers.js) | Whisper speech recognition in the browser (auto lyrics) |
 | [demucs-web](https://github.com/timcsy/demucs-web) + [ONNX Runtime Web](https://onnxruntime.ai) | HTDemucs AI stem separation in the browser (MIT) |
 | [zustand](https://github.com/pmndrs/zustand) | State management |
+| [fflate](https://github.com/101arrowz/fflate) | ZIP for `.articvid` project files |
 
 > The previous version of this template rendered with Remotion. It was replaced by a custom canvas engine
 > so the app can export MP4 **in the browser without a render server**, and so photos, videos, music and
@@ -281,7 +293,7 @@ preview servers already do). If the browser can't encode AAC, it uses Opus audio
 
 ## Roadmap ideas
 
-- Save projects to IndexedDB (including media) and re-open them
+- Version history (several autosave snapshots to roll back to)
 - Keyframes for position/scale and speed ramps (curves)
 - True AI stem separation (vocals / drums / bass) in a worker
 - Rendering in a worker with `OffscreenCanvas`

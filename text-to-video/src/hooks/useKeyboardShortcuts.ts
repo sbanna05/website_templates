@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useEditor } from '../store/editorStore';
+import { useSaveStatus } from '../store/saveStore';
 import { usePlayback } from '../store/playbackStore';
 import { useUi } from '../store/uiStore';
 
@@ -22,6 +23,8 @@ export const SHORTCUTS: [string, string][] = [
   ['Ctrl D', 'Duplicate selected clips'],
   ['Ctrl J', 'Merge (join) selected parts'],
   ['Ctrl Z / Ctrl ⇧ Z', 'Undo / redo'],
+  ['Ctrl S / Ctrl ⇧ S', 'Save / save as project file'],
+  ['Ctrl O', 'Open a project file'],
   ['+ / −', 'Zoom timeline'],
   ['Esc', 'Deselect'],
 ];
@@ -29,10 +32,18 @@ export const SHORTCUTS: [string, string][] = [
 export function useKeyboardShortcuts(): void {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (isTyping(event.target) || useUi.getState().exportOpen) return;
+      const mod = event.metaKey || event.ctrlKey;
+      // Save / open work everywhere, even while typing — and never trigger the browser's own "save page".
+      if (mod && ['s', 'o'].includes(event.key.toLowerCase())) {
+        event.preventDefault();
+        const files = useSaveStatus.getState();
+        if (event.key.toLowerCase() === 'o') void files.open();
+        else void files.save(event.shiftKey);
+        return;
+      }
+      if (isTyping(event.target) || useUi.getState().exportOpen || useSaveStatus.getState().busy) return;
       const editor = useEditor.getState();
       const playback = usePlayback.getState();
-      const mod = event.metaKey || event.ctrlKey;
       const key = event.key.toLowerCase();
 
       const handlers: Record<string, () => void> = {
