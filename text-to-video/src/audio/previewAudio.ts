@@ -1,5 +1,5 @@
 import type { Asset, Project } from '../types/project';
-import { getAudioContext } from './audioContext';
+import { getAudioContext, outputLatency } from './audioContext';
 import { connectMaster } from './master';
 import { collectMixSources, ensureMixBuffers, scheduleMix } from './mixer';
 
@@ -82,7 +82,9 @@ export class PreviewAudio {
 
   now(): number {
     if (!this.running) return this.timelineStart;
-    return this.timelineStart + Math.max(0, getAudioContext().currentTime - this.ctxStart);
+    // What is *heard* now: the audio clock minus the time the sound spends in the output buffer.
+    const ctx = getAudioContext();
+    return this.timelineStart + Math.max(0, ctx.currentTime - outputLatency(ctx) - this.ctxStart);
   }
 
   /** Final output stage: bus → speakers, with a left/right analyser tap for the meters. */

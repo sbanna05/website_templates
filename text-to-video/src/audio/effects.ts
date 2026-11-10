@@ -62,12 +62,31 @@ function impulseResponse(ctx: BaseAudioContext, roomSize: number): AudioBuffer {
   return buffer;
 }
 
+/**
+ * Shared reverb returns for one mix, one per room size — like a mixing desk's
+ * reverb send. Convolution is the most expensive node in Web Audio, so clips
+ * that use the same room share a single convolver instead of running one each.
+ */
+export type ReverbBus = Map<number, ConvolverNode>;
+
+function reverbReturn(ctx: BaseAudioContext, destination: AudioNode, roomSize: number, bus?: ReverbBus): ConvolverNode {
+  const key = Math.round(roomSize * 20) / 20;
+  const shared = bus?.get(key);
+  if (shared) return shared;
+  const convolver = ctx.createConvolver();
+  convolver.buffer = impulseResponse(ctx, key);
+  convolver.connect(destination);
+  bus?.set(key, convolver);
+  return convolver;
+}
+
 /** Wires `input` through the clip's effects into `destination` (a straight connection when dry). */
 export function connectEffects(
   ctx: BaseAudioContext,
   input: AudioNode,
   destination: AudioNode,
   fx: AudioEffects | undefined,
+  reverbBus?: ReverbBus,
 ): void {
   if (!fx || isDry(fx)) {
     input.connect(destination);
@@ -87,9 +106,7 @@ export function connectEffects(
   if (fx.reverb > 0) {
     const send = ctx.createGain();
     send.gain.value = fx.reverb * 0.9;
-    const convolver = ctx.createConvolver();
-    convolver.buffer = impulseResponse(ctx, fx.roomSize);
-    node.connect(send).connect(convolver).connect(destination);
+    node.connect(send).connect(reverbReturn(ctx, destination, fx.roomSize, reverbBus));
   }
 }
 

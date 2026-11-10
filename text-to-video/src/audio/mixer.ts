@@ -3,7 +3,7 @@ import { STEM_NAMES, isFullMix, stemGains } from '../engine/stems';
 import { clipEnd, handOvers } from '../engine/timeline';
 import type { Asset, AudioClip, AudioEffects, EqSettings, Project, VolumeKey } from '../types/project';
 import { audioBufferCache } from './audioBufferCache';
-import { connectEffects } from './effects';
+import { connectEffects, type ReverbBus } from './effects';
 import { connectEq } from './eqChain';
 
 /** One file that sounds inside a source — the song itself, or one of its stems. */
@@ -114,6 +114,7 @@ export function scheduleMix(
 ): AudioBufferSourceNode[] {
   const toCtx = (t: number) => when + (t - from);
   const nodes: AudioBufferSourceNode[] = [];
+  const reverbBus: ReverbBus = new Map();
 
   for (const source of sources) {
     if (source.end <= from) continue;
@@ -143,7 +144,7 @@ export function scheduleMix(
     let output: AudioNode = envelope;
     if (source.volumeKeys?.length) output = output.connect(automationGain(ctx, source, playFrom, playFrom + length, toCtx));
     output = connectEq(ctx, output, source.eq);
-    connectEffects(ctx, output, destination, source.effects);
+    connectEffects(ctx, output, destination, source.effects, reverbBus);
   }
   return nodes;
 }
