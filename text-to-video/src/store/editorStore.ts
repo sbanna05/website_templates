@@ -12,6 +12,7 @@ import {
   createTrack,
   createVisualClip,
 } from '../config/defaults';
+import { aspectValue } from '../config/canvas';
 import { TEXT_PRESETS, applyTextPreset, type TextPreset } from '../config/presets';
 import { matchBeats, type BeatMatchOptions } from '../engine/beatMatch';
 import { resetGrid, withGrid } from '../engine/beatGrid';
@@ -344,7 +345,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const clip =
         asset.kind === 'audio'
           ? { ...createAudioClip(asset, trackId, start), beatSource: !mainBeatClip(get().project, get().assets) }
-          : createVisualClip(asset, trackId, start);
+          : createVisualClip(asset, trackId, start, aspectValue(get().project.aspect));
       get().commit((p) => ({ ...p, clips: [...p.clips, clip] }));
       get().select(clip.id);
     },

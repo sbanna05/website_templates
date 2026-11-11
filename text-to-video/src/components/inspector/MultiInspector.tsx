@@ -1,3 +1,4 @@
+import { createMotion } from '../../config/defaults';
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { SOUND_PRESETS } from '../../audio/effects';
@@ -211,10 +212,10 @@ export function MultiInspector() {
             onChange={(type) => edit(visual, (c) => ({ transitionOut: { ...c.transitionOut, type } }))}
           />
           <Select
-            label={labelled('Motion', shared(visual.map((c) => c.motion)).mixed)}
-            value={visual[0].motion}
+            label={labelled('Motion', shared(visual.map((c) => c.motions.map((m) => m.type).join('+') || 'none')).mixed)}
+            value={visual[0].motions.length === 1 ? (visual[0].motions[0].type === 'path' ? 'none' : visual[0].motions[0].type) : 'none'}
             options={MOTION_OPTIONS}
-            onChange={(motion) => edit(visual, () => ({ motion }))}
+            onChange={(motion) => edit(visual, () => ({ motions: motion === 'none' ? [] : [createMotion(motion)] }))}
           />
           <Select
             label={labelled('Beat effect', shared(visual.map((c) => c.beatFx.type)).mixed)}

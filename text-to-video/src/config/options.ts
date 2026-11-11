@@ -54,7 +54,7 @@ export const MOTION_OPTIONS: MotionOption[] = [
   { label: 'Slide turn left', value: 'turn-left', group: 'Turn', glyph: '↺' },
   { label: 'Slide turn right', value: 'turn-right', group: 'Turn', glyph: '↻' },
   { label: 'Swing', value: 'swing', group: 'Turn', glyph: '⌒' },
-  { label: 'Spiral', value: 'spiral', group: 'Turn', glyph: '◎' },
+  { label: 'Spin', value: 'spiral', group: 'Turn', glyph: '◎' },
   { label: 'Handheld', value: 'handheld', group: 'Organic', glyph: '≈' },
   { label: 'Drift', value: 'drift', group: 'Organic', glyph: '∿' },
 ];
@@ -71,6 +71,7 @@ export const MOTION_CURVE_OPTIONS: (Option<MotionCurve> & { hint: string })[] = 
 
 export const LIGHT_OPTIONS: (Option<LightType> & { hint: string })[] = [
   { label: 'Glow', value: 'glow', hint: 'Soft bloom from the bright parts' },
+  { label: 'Halo', value: 'halo', hint: 'Glowing ring with an open centre' },
   { label: 'Lamp', value: 'lamp', hint: 'Spotlight pool, darker surroundings' },
   { label: 'Eclipse', value: 'eclipse', hint: 'Dark disc with a glowing ring' },
   { label: 'Sun flare', value: 'flare', hint: 'Lens flare with streaks' },

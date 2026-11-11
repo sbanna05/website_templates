@@ -3,7 +3,7 @@ import { clamp, seededRandom } from '../lib/math';
 import type { BeatFxType, Filters, VisualClip } from '../types/project';
 import { beatStateAt, type BeatState } from './beats';
 import { drawLights } from './drawLights';
-import { MOTIONS, pacedProgress } from './motion';
+import { motionPose } from './motion';
 import { TRANSITIONS, type TransitionPose } from './transitions';
 import { IDENTITY_POSE, combinePoses, type Hitbox, type Pose, type RenderEnv } from './types';
 
@@ -71,12 +71,12 @@ export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSo
   const sy = crop.y * src.height;
   const sw = Math.max(1, crop.width * src.width);
   const sh = Math.max(1, crop.height * src.height);
-  const ratio = clip.fit === 'cover' ? Math.max(W / sw, H / sh) : Math.min(W / sw, H / sh);
+  const coverRatio = Math.max(W / sw, H / sh);
+  const ratio = clip.fit === 'cover' ? coverRatio : Math.min(W / sw, H / sh);
   const drawW = sw * ratio;
   const drawH = sh * ratio;
 
-  const paced = pacedProgress(clip.motionCurve, local, clip.duration, clip.start, env.beats);
-  const motion = MOTIONS[clip.motion](paced, clip.motionAmount, W, H, env.time);
+  const motions = motionPose(clip.motions, local, clip.duration, clip.start, env.beats, { pw: drawW * transform.scale, ph: drawH * transform.scale, W, H }, env.time);
   const inProgress = clip.transitionIn.duration > 0 ? clamp(local / clip.transitionIn.duration, 0, 1) : 1;
   const outProgress =
     clip.transitionOut.duration > 0 ? clamp((clip.duration - local) / clip.transitionOut.duration, 0, 1) : 1;
@@ -86,7 +86,7 @@ export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSo
   const beatState = beatStateAt(env.beats, env.time);
   const beat = BEAT_FX[clip.beatFx.type](beatState, clip.beatFx.intensity, W);
 
-  const pose = combinePoses(IDENTITY_POSE, motion, tin, tout, beat);
+  const pose = combinePoses(IDENTITY_POSE, ...motions, tin, tout, beat);
   const brightness = filters.brightness * (beat.brightness ?? 1);
   const blur = filters.blur * env.unit + pose.blur;
   const opacity = clamp(transform.opacity * pose.opacity, 0, 1);
@@ -94,6 +94,18 @@ export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSo
   const cy = H / 2 + transform.y * H + pose.dy;
   const scale = transform.scale * pose.scale;
   const rotation = (transform.rotation * Math.PI) / 180 + pose.rotation;
+
+  if (clip.fit === 'blur') {
+    // Backdrop: the same picture filling the frame, blurred and dimmed, so a
+    // wide photo in a tall frame shows whole without black bars.
+    const bw = sw * coverRatio;
+    const bh = sh * coverRatio;
+    ctx.save();
+    ctx.globalAlpha = clamp(transform.opacity * (tin.opacity ?? 1) * (tout.opacity ?? 1), 0, 1);
+    ctx.filter = `blur(${Math.round(Math.max(W, H) * 0.035)}px) brightness(0.62) saturate(${filters.saturation * 1.1})`;
+    ctx.drawImage(source, sx, sy, sw, sh, (W - bw * 1.08) / 2, (H - bh * 1.08) / 2, bw * 1.08, bh * 1.08);
+    ctx.restore();
+  }
 
   ctx.save();
   ctx.globalAlpha = opacity;
@@ -112,7 +124,7 @@ export function drawVisualClip(ctx: Ctx, clip: VisualClip, source: CanvasImageSo
   ctx.drawImage(source, sx, sy, sw, sh, x, y, drawW, drawH);
   ctx.filter = 'none';
   gradeImage(ctx, filters, x, y, drawW, drawH);
-  drawLights(ctx, clip.lights, { x, y, width: drawW, height: drawH, source, sx, sy, sw, sh }, beatState.pulse);
+  drawLights(ctx, clip.lights, { x, y, width: drawW, height: drawH, source, sx, sy, sw, sh }, beatState.pulse, env.time);
   ctx.restore();
 
   if (filters.vignette > 0) {

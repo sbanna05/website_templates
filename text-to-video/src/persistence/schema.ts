@@ -1,7 +1,7 @@
 import { DEFAULT_MASTER } from '../audio/master';
-import { DRY_EFFECTS, createEmptyProject } from '../config/defaults';
+import { DRY_EFFECTS, createEmptyProject, createMotion, normalizeLight } from '../config/defaults';
 import { FLAT_EQ } from '../engine/eq';
-import type { Asset, Clip, Project } from '../types/project';
+import type { Asset, Clip, MotionCurve, MotionType, Project, VisualClip } from '../types/project';
 
 /*
  * The saved form of a project — shared by autosave (IndexedDB) and project
@@ -50,6 +50,7 @@ export function parseSaved(value: unknown): SavedProject {
 export function normalizeProject(project: Partial<Project>): Project {
   const base = createEmptyProject();
   const clips = (project.clips ?? []).map((clip): Clip => {
+    if (clip.kind === 'visual') return normalizeVisual(clip);
     if (clip.kind !== 'audio') return clip;
     return {
       ...clip,
@@ -67,6 +68,16 @@ export function normalizeProject(project: Partial<Project>): Project {
     manualBeats: project.manualBeats ?? [],
     master: { ...DEFAULT_MASTER, ...project.master, eq: { ...FLAT_EQ, ...project.master?.eq } },
   };
+}
+
+/** Saves from before the motion stack had one move (`motion` + amount + pace); turn it into a one-layer stack. */
+type LegacyVisual = VisualClip & { motion?: MotionType; motionAmount?: number; motionCurve?: MotionCurve };
+
+function normalizeVisual(clip: LegacyVisual): VisualClip {
+  const { motion, motionAmount, motionCurve, ...rest } = clip;
+  const motions =
+    rest.motions ?? (motion && motion !== 'none' ? [createMotion(motion, { amount: motionAmount ?? 0.12, curve: motionCurve ?? 'ease-in-out' })] : []);
+  return { ...rest, motions, lights: (rest.lights ?? []).map(normalizeLight) };
 }
 
 /** Asset metadata worth keeping (everything but runtime state). */

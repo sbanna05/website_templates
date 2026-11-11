@@ -182,6 +182,36 @@ export type MotionType =
   | 'handheld'
   | 'drift';
 
+/** A move drawn by hand on the preview, PowerPoint-style. */
+export type MotionKind = MotionType | 'path';
+
+/** A point of a drawn motion path: offset from the clip's resting position, as a fraction of the frame. */
+export interface PathPoint {
+  x: number;
+  y: number;
+}
+
+/**
+ * One move in a clip's motion stack. Moves run in their own time window and
+ * add up (zoom + pan + spin…). Sizes are measured on the picture itself.
+ */
+export interface MotionLayer {
+  id: string;
+  type: MotionKind;
+  /** 0–1 (zooms: +100% size at 1; pans: travel of the picture's own width/height). Paths: path scale. */
+  amount: number;
+  curve: MotionCurve;
+  /** Window inside the clip, as a fraction of its length (0–1), so trims keep the timing in proportion. */
+  from: number;
+  to: number;
+  /** How many times the move plays inside its window. */
+  repeat: number;
+  /** Repeats go back and forth instead of restarting. */
+  yoyo: boolean;
+  /** Only for `path`. */
+  path?: PathPoint[];
+}
+
 /** How the camera move is paced across the clip — CapCut-style velocity. */
 export type MotionCurve = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'fast-middle' | 'slow-middle' | 'on-beat';
 
@@ -193,7 +223,13 @@ export interface Crop {
   height: number;
 }
 
-export type LightType = 'glow' | 'lamp' | 'eclipse' | 'flare' | 'leak' | 'beam';
+export type LightType = 'glow' | 'halo' | 'lamp' | 'eclipse' | 'flare' | 'leak' | 'beam';
+
+/** How a light mixes into the picture. `auto` uses the light's natural mode (mostly screen). */
+export type LightBlend = 'auto' | 'add' | 'screen' | 'overlay' | 'soft-light' | 'color-dodge';
+
+/** Movement of the light itself over time. */
+export type LightAnimation = 'none' | 'pulse' | 'flicker' | 'breathe' | 'drift' | 'spin';
 
 /** A light painted on top of a photo/video, Lightroom-style. Position is relative to the image (0–1). */
 export interface LightEffect {
@@ -206,6 +242,16 @@ export interface LightEffect {
   color: string;
   angle: number;
   pulseOnBeat: boolean;
+  /** Outer colour the light fades into (same as `color` for a single-tone light). */
+  color2: string;
+  /** 0 = hard edge … 1 = very soft falloff. 0.5 is the natural look. */
+  softness: number;
+  /** Squashes the light along its angle: 1 = round, 3 = long streak. */
+  stretch: number;
+  blend: LightBlend;
+  animation: LightAnimation;
+  /** Animation speed multiplier. */
+  speed: number;
 }
 
 export interface Marker {
@@ -253,14 +299,14 @@ export interface VisualClip extends ClipBase {
   volume: number;
   /** Semitones, applied to the clip's own audio. */
   pitch: number;
-  fit: 'cover' | 'contain';
+  /** `blur` shows the whole picture over a blurred, frame-filling copy of itself. */
+  fit: 'cover' | 'contain' | 'blur';
   crop: Crop;
   flipX: boolean;
   flipY: boolean;
   transform: Transform;
-  motion: MotionType;
-  motionAmount: number;
-  motionCurve: MotionCurve;
+  /** Motion stack; empty = still. */
+  motions: MotionLayer[];
   filters: Filters;
   lights: LightEffect[];
   transitionIn: Transition;

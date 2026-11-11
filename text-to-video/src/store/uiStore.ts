@@ -59,6 +59,11 @@ function saveLayout(layout: PanelLayout): void {
   }
 }
 
+export interface PathEditTarget {
+  clipId: string;
+  motionId: string;
+}
+
 interface UiState {
   pxPerSecond: number;
   libraryTab: LibraryTab;
@@ -71,6 +76,9 @@ interface UiState {
   viewHidden: Record<string, true>;
   /** Show the chord row above the tracks. */
   showChords: boolean;
+  /** The drawn-path move being edited on the preview, if any. */
+  pathEdit: PathEditTarget | null;
+  setPathEdit: (target: PathEditTarget | null) => void;
   setTool: (tool: EditTool) => void;
   setViewHidden: (trackId: string, hidden: boolean) => void;
   /** Shows only `keep` out of `all` tracks; an empty `keep` shows everything. */
@@ -97,6 +105,8 @@ export const useUi = create<UiState>((set) => ({
   tool: 'select',
   viewHidden: {},
   showChords: true,
+  pathEdit: null,
+  setPathEdit: (pathEdit) => set({ pathEdit }),
   setTool: (tool) => set({ tool }),
   setViewHidden: (trackId, hidden) =>
     set((s) => {

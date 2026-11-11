@@ -207,8 +207,9 @@ export function CropEditor({ clip, asset, patch }: CropEditorProps) {
         label="Fit in frame"
         value={clip.fit}
         options={[
-          { label: 'Fill frame', value: 'cover' },
-          { label: 'Show all', value: 'contain' },
+          { label: 'Fill frame', value: 'cover', title: 'Zoom until the frame is full (crops the sides)' },
+          { label: 'Fit + blur', value: 'blur', title: 'Whole picture over a blurred copy of itself' },
+          { label: 'Fit', value: 'contain', title: 'Whole picture on black' },
         ]}
         onChange={(fit) => patch({ fit })}
       />
