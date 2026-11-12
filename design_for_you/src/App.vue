@@ -1,197 +1,322 @@
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
-import * as THREE from 'three'
-import { sceneConfig, palettes } from './config/sceneObjects'
-import { useResizable } from './composables/useResizable'
+// App shell: lays the glass panels over the full-bleed 3D stage and owns
+// the bits of UI state that are not part of the design itself (which tab is
+// open, which dialog is showing).
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useStudio } from './composables/useStudio'
+import AppIcon from './components/AppIcon.vue'
+import BlockCatalog from './components/BlockCatalog.vue'
+import ColourPanel from './components/ColourPanel.vue'
+import DataDialog from './components/DataDialog.vue'
+import InspectorPanel from './components/InspectorPanel.vue'
+import MaterialPanel from './components/MaterialPanel.vue'
+import ShortcutsDialog from './components/ShortcutsDialog.vue'
+import TopBar from './components/TopBar.vue'
+import ViewControls from './components/ViewControls.vue'
 
-import TargetPicker from './components/TargetPicker.vue'
-import PaletteSwatches from './components/PaletteSwatches.vue'
-import ColorMixer from './components/ColorMixer.vue'
-import MaterialSwatches from './components/MaterialSwatches.vue'
-import ModelLibraryPanel from './components/ModelLibraryPanel.vue'
-import ModelViewport from './components/ModelViewport.vue'
+// The 3D engine is the heaviest part of the app, so it loads in its own
+// chunk while the panels are already usable.
+const StudioCanvas = defineAsyncComponent(() => import('./components/StudioCanvas.vue'))
 
-// ---- Mode + target selection -------------------------------------------
-const appMode = ref('interior')
-const items = computed(() => sceneConfig[appMode.value])
-const activeTarget = ref(items.value[0].id)
+const studio = useStudio()
 
-watch(appMode, () => {
-  activeTarget.value = items.value[0].id
+// ---- Layout ---------------------------------------------------------------
+
+// On narrow screens the inspector joins the library as a fourth tab in one
+// bottom sheet, instead of taking a second column.
+const compactQuery = window.matchMedia('(max-width: 900px)')
+const isCompact = ref(compactQuery.matches)
+const onCompactChange = (event) => { isCompact.value = event.matches }
+
+const LIBRARY_TABS = [
+  { id: 'blocks', label: 'Blocks' },
+  { id: 'colours', label: 'Colours' },
+  { id: 'materials', label: 'Materials' }
+]
+const tabs = computed(() => (isCompact.value ? [...LIBRARY_TABS, { id: 'edit', label: 'Edit' }] : LIBRARY_TABS))
+const activeTab = ref('blocks')
+const sheetOpen = ref(true)
+const tabRefs = ref({})
+
+watch(isCompact, (compact) => {
+  if (!compact && activeTab.value === 'edit') activeTab.value = 'blocks'
 })
 
-// ---- Palette --------------------------------------------------------------
-const activePaletteName = ref('vibrant')
+function openTab(id) {
+  activeTab.value = id
+  sheetOpen.value = true
+}
 
-// ---- Tint/Shade/Tone mixer base color --------------------------------------
-// Deliberately its OWN piece of state, independent of any object's applied
-// color. It only ever changes when the user picks a "given" color — a
-// palette swatch, or the native color picker inside the mixer itself.
-// Applying a *mixed* result to an object must never feed back into this,
-// or every click would shift the base and the mixer would drift with each
-// use. See ColorMixer.vue and onApplyMixedColor/onDropColor below.
-const mixerBaseColor = ref(palettes.vibrant[0])
+/** Arrow keys move between tabs, as the tab pattern expects. */
+function onTabKeydown(event) {
+  const order = tabs.value.map((tab) => tab.id)
+  const index = order.indexOf(activeTab.value)
+  const next = {
+    ArrowRight: order[(index + 1) % order.length],
+    ArrowLeft: order[(index - 1 + order.length) % order.length],
+    Home: order[0],
+    End: order[order.length - 1]
+  }[event.key]
+  if (!next) return
+  event.preventDefault()
+  openTab(next)
+  nextTick(() => tabRefs.value[next]?.focus())
+}
 
-// ---- Per-object styling -----------------------------------------------------
-const textureLoader = new THREE.TextureLoader()
+// ---- Dialogs ----------------------------------------------------------------
 
-function buildDefaultStyles() {
-  const map = {}
-  for (const mode of Object.keys(sceneConfig)) {
-    for (const item of sceneConfig[mode]) {
-      map[item.id] = { color: item.defaultColor, texture: null }
-    }
+const dataOpen = ref(false)
+const shortcutsOpen = ref(false)
+
+// ---- Shortcuts that work anywhere -------------------------------------------
+
+function onGlobalKeydown(event) {
+  const typing = event.target.closest?.('input, textarea, select, [contenteditable]')
+  const command = event.ctrlKey || event.metaKey
+  const key = event.key.toLowerCase()
+
+  // Leave Ctrl+Z to the browser while a text field is being edited.
+  if (command && key === 'z' && !typing) {
+    event.preventDefault()
+    if (event.shiftKey) studio.redo()
+    else studio.undo()
+  } else if (command && key === 'y' && !typing) {
+    event.preventDefault()
+    studio.redo()
+  } else if (event.key === '?' && !typing) {
+    shortcutsOpen.value = true
   }
-  return map
-}
-// `color` and `texture` are independent: setting one never clears the
-// other, so a color always tints whatever texture (if any) is applied.
-const objectStyles = reactive(buildDefaultStyles())
-
-function applyColorTo(id, hex) {
-  objectStyles[id] = { ...objectStyles[id], color: hex }
 }
 
-function applyTextureTo(id, imageUrl) {
-  textureLoader.load(imageUrl, (loaded) => {
-    loaded.wrapS = THREE.RepeatWrapping
-    loaded.wrapT = THREE.RepeatWrapping
-    loaded.repeat.set(2, 2)
-    loaded.colorSpace = THREE.SRGBColorSpace
-    objectStyles[id] = { ...objectStyles[id], texture: loaded }
-  })
-}
+onMounted(() => {
+  compactQuery.addEventListener('change', onCompactChange)
+  window.addEventListener('keydown', onGlobalKeydown)
+})
 
-// Picking a palette color: paints the active target AND becomes the new
-// mixer base, since it's a "given" color.
-function onApplyPaletteColor(hex) {
-  applyColorTo(activeTarget.value, hex)
-  mixerBaseColor.value = hex
-}
-
-// Picking a mixed (tint/shade/tone) result: paints the active target only.
-function onApplyMixedColor(hex) {
-  applyColorTo(activeTarget.value, hex)
-}
-
-function onApplyTexture(url) {
-  applyTextureTo(activeTarget.value, url)
-}
-
-// Dragging a swatch can paint any object directly — a card in the target
-// list, or the object itself in the 3D view — regardless of what's
-// currently selected. `source` (set by the swatch that started the drag)
-// decides whether this also updates the mixer base.
-function onDropColor({ id, color, source }) {
-  applyColorTo(id, color)
-  if (source === 'palette') mixerBaseColor.value = color
-}
-
-function onDropTexture({ id, texture }) {
-  applyTextureTo(id, texture)
-}
-
-// ---- Sidebar resize / collapse ---------------------------------------------
-const sidebarCollapsed = ref(false)
-const { width: sidebarWidth, isResizing, startResize } = useResizable({
-  initial: 400,
-  min: 320,
-  max: 640
+onBeforeUnmount(() => {
+  compactQuery.removeEventListener('change', onCompactChange)
+  window.removeEventListener('keydown', onGlobalKeydown)
 })
 </script>
 
 <template>
-  <div class="designer-layout">
-    <div class="mode-switcher">
-      <button
-        :class="['mode-btn', { active: appMode === 'interior' }]"
-        @click="appMode = 'interior'"
-      >
-        Interior Design
-      </button>
-      <button
-        :class="['mode-btn', { active: appMode === 'clothing' }]"
-        @click="appMode = 'clothing'"
-      >
-        Clothing
-      </button>
-    </div>
+  <div class="app" :class="{ 'is-compact': isCompact, 'sheet-closed': isCompact && !sheetOpen }">
+    <main class="viewport">
+      <Suspense>
+        <StudioCanvas />
+        <template #fallback>
+          <div class="viewport-loading" role="status">
+            <span class="spinner"></span>
+            Loading the 3D studio
+          </div>
+        </template>
+      </Suspense>
+    </main>
 
-    <button
-      class="collapse-toggle"
-      :class="{ collapsed: sidebarCollapsed }"
-      :style="{ left: sidebarCollapsed ? '1.5rem' : sidebarWidth + 24 + 'px' }"
-      @click="sidebarCollapsed = !sidebarCollapsed"
-      :title="sidebarCollapsed ? 'Show panel' : 'Hide panel'"
-    >
-      {{ sidebarCollapsed ? '›' : '‹' }}
-    </button>
+    <TopBar @open-data="dataOpen = true" @open-shortcuts="shortcutsOpen = true" />
 
-    <aside
-      class="sidebar"
-      :class="{ collapsed: sidebarCollapsed, resizing: isResizing }"
-      :style="{ width: sidebarCollapsed ? '0px' : sidebarWidth + 'px' }"
-    >
-      <div class="sidebar-inner" :style="{ width: sidebarWidth + 'px' }">
-        <header class="sidebar-header">
-          <h1 class="brand-title">Design <span class="math-italic">Studio</span></h1>
-          <p class="subtitle">Customize your {{ appMode === 'interior' ? 'space' : 'style' }}</p>
-        </header>
-
-        <div class="sidebar-content">
-          <section class="panel">
-            <h3 class="panel-title">1. Select Target</h3>
-            <TargetPicker
-              v-model="activeTarget"
-              :options="items"
-              @drop-color="onDropColor"
-              @drop-texture="onDropTexture"
-            />
-          </section>
-
-          <section class="panel">
-            <h3 class="panel-title">2. Choose Palette</h3>
-            <PaletteSwatches
-              v-model="activePaletteName"
-              :palettes="palettes"
-              @apply-color="onApplyPaletteColor"
-            />
-          </section>
-
-          <section class="panel">
-            <h3 class="panel-title">3. Tint · Shade · Tone</h3>
-            <ColorMixer
-              v-model="mixerBaseColor"
-              @apply-color="onApplyMixedColor"
-            />
-          </section>
-
-          <section class="panel">
-            <h3 class="panel-title">4. Apply Materials</h3>
-            <MaterialSwatches @apply-texture="onApplyTexture" />
-          </section>
-
-          <section class="panel">
-            <h3 class="panel-title">5. 3D Models <span class="badge">soon</span></h3>
-            <ModelLibraryPanel :items="items" />
-          </section>
+    <aside class="panel glass library" aria-label="Library">
+      <div class="library-head">
+        <div class="segmented tabs" role="tablist" aria-label="Library" @keydown="onTabKeydown">
+          <button
+            v-for="tab in tabs"
+            :id="`tab-${tab.id}`"
+            :key="tab.id"
+            :ref="(el) => { tabRefs[tab.id] = el }"
+            type="button"
+            role="tab"
+            :aria-selected="activeTab === tab.id"
+            :aria-controls="`tabpanel-${tab.id}`"
+            :tabindex="activeTab === tab.id ? 0 : -1"
+            @click="openTab(tab.id)"
+          >
+            {{ tab.label }}
+          </button>
         </div>
+        <button
+          v-if="isCompact"
+          type="button"
+          class="icon-btn sheet-toggle"
+          :aria-expanded="sheetOpen"
+          :aria-label="sheetOpen ? 'Hide the library' : 'Show the library'"
+          @click="sheetOpen = !sheetOpen"
+        >
+          <AppIcon name="chevron" />
+        </button>
       </div>
 
-      <div
-        class="resize-handle"
-        @mousedown="startResize"
-        title="Drag to resize"
-      ></div>
+      <div v-show="!isCompact || sheetOpen" class="panel-scroll library-body">
+        <div v-show="activeTab === 'blocks'" id="tabpanel-blocks" role="tabpanel" aria-labelledby="tab-blocks">
+          <BlockCatalog />
+        </div>
+        <div v-show="activeTab === 'colours'" id="tabpanel-colours" role="tabpanel" aria-labelledby="tab-colours">
+          <ColourPanel />
+        </div>
+        <div v-show="activeTab === 'materials'" id="tabpanel-materials" role="tabpanel" aria-labelledby="tab-materials">
+          <MaterialPanel @open-licences="dataOpen = true" />
+        </div>
+        <div v-if="isCompact" v-show="activeTab === 'edit'" id="tabpanel-edit" role="tabpanel" aria-labelledby="tab-edit">
+          <InspectorPanel />
+        </div>
+      </div>
     </aside>
 
-    <main class="canvas-container">
-      <ModelViewport
-        :items="items"
-        :paint-map="objectStyles"
-        @drop-color="onDropColor"
-        @drop-texture="onDropTexture"
-      />
-    </main>
+    <aside v-if="!isCompact" class="panel glass inspector" aria-label="Selected block">
+      <div class="panel-scroll">
+        <InspectorPanel />
+      </div>
+    </aside>
+
+    <div class="view-controls">
+      <ViewControls />
+    </div>
+
+    <p v-if="studio.saveFailed.value" class="save-warning glass" role="alert">
+      This browser is blocking saves, so your work will last only until you close the page.
+    </p>
+
+    <div class="visually-hidden" role="status" aria-live="polite">{{ studio.announcement.value }}</div>
+
+    <DataDialog :open="dataOpen" @close="dataOpen = false" />
+    <ShortcutsDialog :open="shortcutsOpen" @close="shortcutsOpen = false" />
   </div>
 </template>
+
+<style scoped>
+.app {
+  --edge: var(--space-4);
+  --top-offset: 82px;
+  --sheet-height: 46dvh;
+
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  /* Stage backdrop: steel grey lit from above, warmed with clay and teal at the corners. */
+  background:
+    radial-gradient(60% 50% at 10% 92%, rgba(181, 101, 63, 0.22), transparent 70%),
+    radial-gradient(55% 50% at 90% 6%, rgba(47, 93, 98, 0.36), transparent 70%),
+    radial-gradient(120% 90% at 50% 38%, var(--stage-high) 0%, var(--stage-mid) 48%, var(--stage-low) 100%);
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+}
+
+.viewport-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.library,
+.inspector {
+  position: absolute;
+  top: var(--top-offset);
+  z-index: 2;
+}
+
+.library {
+  bottom: var(--edge);
+  left: var(--edge);
+  width: 332px;
+}
+
+.inspector {
+  right: var(--edge);
+  width: 316px;
+  max-height: calc(100% - var(--top-offset) - var(--edge));
+}
+
+/* The inspector hugs its content and only scrolls once it runs out of room. */
+.inspector .panel-scroll {
+  flex: 0 1 auto;
+}
+
+.library-head {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.tabs {
+  flex: 1;
+}
+
+.tabs button {
+  padding: 0 var(--space-2);
+}
+
+.view-controls {
+  position: absolute;
+  bottom: var(--edge);
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+}
+
+.save-warning {
+  position: absolute;
+  bottom: calc(var(--edge) + 64px);
+  left: 50%;
+  z-index: 2;
+  max-width: min(420px, calc(100% - 32px));
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-bar);
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* ---- Narrow screens: one bottom sheet ---------------------------------- */
+
+.is-compact {
+  --edge: var(--space-2);
+}
+
+.is-compact .viewport {
+  /* Clear the top bar, which wraps onto two rows on a phone. */
+  top: 104px;
+  bottom: calc(var(--sheet-height) + var(--edge));
+  transition: bottom var(--medium) var(--ease);
+}
+
+.is-compact .library {
+  top: auto;
+  right: var(--edge);
+  width: auto;
+  height: var(--sheet-height);
+  transition: height var(--medium) var(--ease);
+}
+
+.is-compact.sheet-closed {
+  --sheet-height: 66px;
+}
+
+.is-compact.sheet-closed .library-head {
+  margin-bottom: 0;
+}
+
+.sheet-toggle svg {
+  transition: transform var(--medium) var(--ease);
+}
+
+.sheet-closed .sheet-toggle svg {
+  transform: rotate(180deg);
+}
+
+.is-compact .view-controls {
+  bottom: calc(var(--sheet-height) + var(--edge) * 2);
+  transition: bottom var(--medium) var(--ease);
+}
+
+.is-compact .save-warning {
+  bottom: calc(var(--sheet-height) + var(--edge) * 2 + 60px);
+}
+</style>
