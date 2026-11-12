@@ -19,12 +19,25 @@ export default defineConfig({
   preview: { headers: isolationHeaders },
   plugins: [react()],
   worker: { format: 'es' },
-  // Pre-bundle what the workers import, so their first use doesn't trigger a dev re-optimise (which breaks a running worker).
+  // Pre-bundle what the workers and the lazy export encoders import, so their first use doesn't trigger a dev
+  // re-optimise (which breaks a running worker and fails the dynamic import with "outdated optimize dep").
   // ONNX Runtime stays un-bundled in dev so it can find its .wasm files next to itself.
-  optimizeDeps: { include: ['@huggingface/transformers', 'soundtouchjs', 'demucs-web'], exclude: ['onnxruntime-web'] },
+  optimizeDeps: {
+    include: [
+      '@huggingface/transformers',
+      'soundtouchjs',
+      'demucs-web',
+      'mediabunny',
+      '@mediabunny/mp3-encoder',
+      '@mediabunny/flac-encoder',
+      'gifenc',
+    ],
+    exclude: ['onnxruntime-web'],
+  },
   build: {
-    // The MP4 encoder (Mediabunny) is lazy-loaded on export and is ~540 kB on its own.
-    chunkSizeWarningLimit: 600,
+    // The export chunk (Mediabunny + gifenc) is lazy-loaded on export and is ~620 kB on its own;
+    // the MP3/FLAC WASM encoders are split further and only load when those formats are picked.
+    chunkSizeWarningLimit: 650,
   },
   test: {
     environment: 'node',

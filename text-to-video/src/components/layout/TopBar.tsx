@@ -62,7 +62,7 @@ export function TopBar() {
       </div>
 
       <Button variant="primary" icon="download" onClick={openExport} className="topbar__export">
-        Export MP4
+        Export
       </Button>
     </header>
   );
