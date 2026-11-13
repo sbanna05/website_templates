@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-theme="sage">
+  <head>
+    <meta charset="utf-8" />
+    <title>Booknook</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Booknook is a reading corner for your books. Shelve them in 3D, read classics page by page, and keep your own ratings and reviews."
+    />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <script>
+      try {
+        var theme = JSON.parse(localStorage.getItem('booknook.theme'));
+        if (theme) document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        // Storage is blocked; the default theme stays.
+      }
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+    <noscript>Booknook needs JavaScript to open your shelves and books.</noscript>
+  </body>
+</html>

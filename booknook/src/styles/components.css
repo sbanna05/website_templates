@@ -1,0 +1,389 @@
+/* Shared components. Page-specific layout lives in the templates as
+   Tailwind utilities; anything used in more than one place lives here. */
+@layer components {
+  .skip-link {
+    position: absolute;
+    inset-inline-start: -999px;
+    z-index: 100;
+  }
+
+  .skip-link:focus {
+    position: fixed;
+    inset-block-start: 8px;
+    inset-inline-start: 8px;
+    padding: 12px 16px;
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  /* ---- Surfaces -------------------------------------------------------- */
+
+  .card {
+    padding: var(--pad-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .lede {
+    font-size: 1.0625rem;
+    color: var(--ink-soft);
+  }
+
+  /* ---- Buttons --------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background var(--fast),
+      border-color var(--fast),
+      transform var(--fast) var(--ease-out);
+  }
+
+  .btn:hover {
+    background: var(--accent-wash);
+    border-color: var(--accent-text);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary {
+    border-color: transparent;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+  }
+
+  .btn-primary:hover {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--accent) 86%, var(--ink));
+  }
+
+  .btn-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .btn-lg {
+    min-height: 52px;
+    padding: 0 24px;
+    font-size: 1rem;
+  }
+
+  .btn-quiet {
+    border-color: transparent;
+  }
+
+  .icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--ink);
+    transition:
+      background var(--fast),
+      transform var(--fast) var(--ease-out);
+  }
+
+  .icon-btn:hover {
+    background: var(--accent-wash);
+  }
+
+  .icon-btn:active {
+    transform: scale(0.92);
+  }
+
+  .icon-btn[aria-pressed='true'],
+  .icon-btn[aria-expanded='true'] {
+    background: var(--accent-wash);
+    color: var(--accent-text);
+  }
+
+  /* ---- Form fields ----------------------------------------------------- */
+
+  .field-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+    font-weight: 650;
+  }
+
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    transition: border-color var(--fast);
+  }
+
+  .field:hover {
+    border-color: var(--ink-soft);
+  }
+
+  .field::placeholder {
+    color: var(--ink-soft);
+  }
+
+  .field[aria-invalid='true'] {
+    border-color: var(--danger);
+  }
+
+  /* Helper and error text share one slot, so a message never shifts the layout. */
+  .field-note {
+    min-height: 1.25rem;
+    margin-top: 6px;
+    font-size: 0.8125rem;
+    color: var(--ink-soft);
+  }
+
+  .field-note.is-error {
+    color: var(--danger);
+  }
+
+  /* ---- Tooltip --------------------------------------------------------- */
+
+  .tooltip {
+    position: fixed;
+    z-index: 90;
+    max-width: 240px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--canvas);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    pointer-events: none;
+    animation: tooltip-in var(--fast) var(--ease-out);
+  }
+
+  .tooltip kbd {
+    margin-left: 6px;
+    padding: 1px 5px;
+    border: 1px solid color-mix(in srgb, var(--canvas) 40%, transparent);
+    border-radius: 4px;
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.75rem;
+  }
+
+  @keyframes tooltip-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+  }
+
+  /* ---- Loading --------------------------------------------------------- */
+
+  .skeleton {
+    border-radius: var(--radius-inner);
+    background: linear-gradient(
+      100deg,
+      var(--surface-sunken) 30%,
+      var(--line) 50%,
+      var(--surface-sunken) 70%
+    );
+    background-size: 300% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--line-strong);
+    border-top-color: var(--accent-text);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes shimmer {
+    to {
+      background-position: -300% 0;
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ---- Dialog ---------------------------------------------------------- */
+
+  .dialog {
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 24px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .dialog::backdrop {
+    background: rgb(0 0 0 / 0.55);
+  }
+
+  .dialog[open] {
+    animation: dialog-in var(--medium) var(--ease-out);
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  /* ---- Toasts ---------------------------------------------------------- */
+
+  .toast-stack {
+    position: fixed;
+    inset-inline: 16px;
+    bottom: 16px;
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 100%;
+    padding: 8px 8px 8px 16px;
+    border-radius: var(--radius-bar);
+    background: var(--ink);
+    color: var(--canvas);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    pointer-events: auto;
+    animation: dialog-in var(--medium) var(--ease-out);
+  }
+
+  .toast button {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid color-mix(in srgb, var(--canvas) 45%, transparent);
+    /* bar radius 14 - padding 8, rounded up for a 36 px control */
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  /* ---- Book cover ------------------------------------------------------ */
+
+  .cover {
+    position: relative;
+    display: block;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-inner);
+    background: var(--cloth, #4a6650);
+    box-shadow:
+      inset 3px 0 0 rgb(0 0 0 / 0.18),
+      inset 4px 0 0 rgb(255 255 255 / 0.1),
+      0 6px 14px rgb(0 0 0 / 0.22);
+  }
+
+  .cover img {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Typeset cover for books without artwork: title and author on cloth. */
+  .cover-type {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12% 10% 10% 14%;
+    color: #fbf6ea;
+    container-type: inline-size;
+  }
+
+  .cover-type-title {
+    font-family: var(--font-display);
+    font-size: clamp(0.7rem, 12cqw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.08;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .cover-type-author {
+    font-size: clamp(0.55rem, 6.5cqw, 0.8125rem);
+    font-weight: 600;
+    opacity: 0.86;
+  }
+
+  /* ---- Star rating ----------------------------------------------------- */
+
+  .stars {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .stars label {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--line-strong);
+    cursor: pointer;
+    transition:
+      color var(--fast),
+      transform var(--fast) var(--ease-out);
+  }
+
+  .stars label.is-on {
+    color: var(--accent-text);
+  }
+
+  .stars label:hover {
+    transform: scale(1.15);
+  }
+
+  .stars input:focus-visible + label {
+    outline: 2px solid var(--accent-text);
+    outline-offset: -4px;
+    border-radius: var(--radius-control);
+  }
+}

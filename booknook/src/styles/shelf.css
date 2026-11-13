@@ -1,0 +1,164 @@
+/*
+ * The 3D bookshelf. Each book is a real box in CSS 3D space: the spine
+ * faces the reader and the front cover sits at a right angle behind it, so
+ * pulling a book (hover or keyboard focus) swings the cover into view.
+ *
+ * `overflow` flattens 3D, so the scrolling wrapper (.shelf-scroll) and the
+ * 3D stage (.shelf-row) have to be separate elements.
+ */
+@layer components {
+  .shelf {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  .shelf-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .shelf-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    width: max-content;
+    min-width: 100%;
+    min-height: 236px;
+    margin: 0;
+    padding: 32px 24px 0;
+    list-style: none;
+    perspective: 1400px;
+    perspective-origin: 50% 35%;
+  }
+
+  .shelf-slot {
+    position: relative;
+    transform-style: preserve-3d;
+  }
+
+  /* A pulled-out book swings its cover across its neighbours, so it must paint above them. */
+  .shelf-slot:has(.spine.is-featured) {
+    z-index: 1;
+  }
+
+  .shelf-slot:has(.spine:hover, .spine:focus-visible) {
+    z-index: 2;
+  }
+
+  .spine {
+    position: relative;
+    display: block;
+    width: calc(var(--spine-width) * var(--shelf-scale, 1));
+    height: calc(var(--spine-height) * var(--shelf-scale, 1));
+    transform-style: preserve-3d;
+    transform-origin: left center;
+    transition: transform 420ms var(--ease-out);
+  }
+
+  .spine:focus-visible,
+  .spine.is-featured {
+    transform: translateZ(64px) rotateY(-40deg);
+  }
+
+  /* While the reader is handling another book, the showcased one slides back in. */
+  .shelf-row:has(.spine:hover, .spine:focus-visible)
+    .spine.is-featured:not(:hover, :focus-visible) {
+    transform: none;
+  }
+
+  /* Hover only where a pointer can hover, so a tap does not leave a book pulled out. */
+  @media (hover: hover) {
+    .spine:hover {
+      transform: translateZ(64px) rotateY(-40deg);
+    }
+  }
+
+  .spine-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 2px;
+    /* Shading across the width makes the flat spine read as rounded. */
+    background:
+      linear-gradient(
+        90deg,
+        rgb(0 0 0 / 0.28),
+        transparent 20%,
+        rgb(255 255 255 / 0.1) 50%,
+        transparent 80%,
+        rgb(0 0 0 / 0.3)
+      ),
+      var(--cloth);
+  }
+
+  .spine-title {
+    max-height: calc(var(--spine-height) * var(--shelf-scale, 1) - 28px);
+    overflow: hidden;
+    color: #fbf6ea;
+    font-family: var(--font-display);
+    font-size: calc(0.8125rem * var(--shelf-scale, 1));
+    font-weight: 600;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* English spines read top to bottom, with every character turned the same way. */
+    writing-mode: vertical-rl;
+    text-orientation: sideways;
+  }
+
+  .spine-cover {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    /* Covers are 2:3, so the book is two thirds as deep as it is tall. */
+    width: calc(var(--spine-height) * var(--shelf-scale, 1) * 2 / 3);
+    height: 100%;
+    transform-origin: left center;
+    transform: rotateY(90deg);
+  }
+
+  .spine-cover .cover {
+    width: 100%;
+    height: 100%;
+    border-radius: 0 3px 3px 0;
+    box-shadow: none;
+  }
+
+  /* The home page's showcase shelf: larger books, centred. */
+  .shelf-showcase .shelf-row {
+    justify-content: center;
+    min-height: 290px;
+  }
+
+  @media (min-width: 768px) {
+    .shelf-showcase {
+      --shelf-scale: 1.35;
+    }
+
+    .shelf-showcase .shelf-row {
+      min-height: 350px;
+    }
+  }
+
+  .shelf-board {
+    position: relative;
+    height: 16px;
+    background: linear-gradient(var(--shelf-wood), var(--shelf-wood-dark));
+    box-shadow: 0 -1px 0 rgb(255 255 255 / 0.12) inset;
+  }
+
+  .shelf-empty {
+    display: flex;
+    align-items: center;
+    min-height: 204px;
+    padding: 0 24px;
+    color: var(--ink-soft);
+  }
+}
