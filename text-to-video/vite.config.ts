@@ -13,7 +13,6 @@ const isolationHeaders = {
   'Cross-Origin-Embedder-Policy': 'credentialless',
 };
 
-// https://vite.dev/config/
 export default defineConfig({
   server: { headers: isolationHeaders },
   preview: { headers: isolationHeaders },
@@ -35,12 +34,11 @@ export default defineConfig({
     exclude: ['onnxruntime-web'],
   },
   build: {
-    // The export chunk (Mediabunny + gifenc) is lazy-loaded on export and is ~620 kB on its own;
-    // the MP3/FLAC WASM encoders are split further and only load when those formats are picked.
     chunkSizeWarningLimit: 650,
   },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
   },
+  base: './',
 });
