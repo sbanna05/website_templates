@@ -2,12 +2,6 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-/**
- * Cross-origin isolation lets the AI models (stems, lyrics) run multi-threaded
- * WebAssembly when there's no GPU. `credentialless` keeps Google Fonts and the
- * model CDN working without extra headers on their side. Set the same two
- * headers on your production host to get the speed-up there too.
- */
 const isolationHeaders = {
   'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Embedder-Policy': 'credentialless',
@@ -43,4 +37,5 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts'],
   },
+  base: '/website_templates/text-to-video/',
 });
