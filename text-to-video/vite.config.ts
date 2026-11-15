@@ -40,5 +40,5 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts'],
   },
-  base: './',
+  base: '/website_templates/text-to-video/',
 });
