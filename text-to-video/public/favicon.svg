@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>ArticVid</title>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2f5675"/>
+      <stop offset="1" stop-color="#0b0f12"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="22" y1="16" x2="48" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f2f6f7"/>
+      <stop offset="1" stop-color="#98bdd5"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg)"/>
+  <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="15.25" stroke="#c5dbe8" stroke-opacity=".22" stroke-width="1.5"/>
+  <!-- An ice peak that doubles as a play button -->
+  <path d="M23 16.5 49 32 23 47.5z" fill="url(#ice)" stroke="#f2f6f7" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M23 36.5 29.5 30.5 34 34.5 39.5 28.6 49 32 23 47.5z" fill="#46789b" fill-opacity=".55"/>
+  <!-- Beat bars -->
+  <rect x="11" y="27" width="3.5" height="10" rx="1.75" fill="#77a68e"/>
+  <rect x="16.5" y="23" width="3.5" height="18" rx="1.75" fill="#a3c8b4"/>
+</svg>
