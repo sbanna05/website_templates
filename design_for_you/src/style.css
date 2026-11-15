@@ -1,277 +1,434 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500&display=swap');
+/*
+ * Design system for Design For You.
+ * Tokens first, then base elements, then the shared components every panel
+ * uses. Component-specific layout lives in each .vue file's scoped styles.
+ *
+ * Radius rule: inner radius = outer radius - padding.
+ *   panel 20 - 12 = 8 (cards inside a panel)
+ *   bar   16 -  6 = 10 (buttons inside a toolbar)
+ */
 
 :root {
-  /* Theme: Beige & Sage Green */
-  --glass-bg: rgba(245, 242, 235, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --text-main: #3a403d;
-  --text-muted: #74807a;
-  --accent-green: #4A5D4E;
-  --accent-hover: #3d4d40;
+  --font-ui: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+
+  /* Stage: the backdrop behind the 3D scene. */
+  --stage-high: #48535d;
+  --stage-mid: #262c33;
+  --stage-low: #101316;
+
+  /* Glass surfaces. */
+  --glass: rgba(22, 26, 30, 0.68);
+  --glass-solid: #1b2025;
+  --glass-blur: blur(24px) saturate(150%);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-hover: rgba(255, 255, 255, 0.12);
+
+  /* Text. Both pass WCAG AAA on the glass surfaces. */
+  --text: #f3f5f2;
+  --text-soft: #c5cdc8;
+
+  /* One accent, used for selection, focus and the primary action. */
+  --accent: #a9c7ae;
+  --accent-strong: #c2dcc6;
+  --accent-ink: #12201a;
+  --accent-wash: rgba(169, 199, 174, 0.16);
+  --danger: #f2aa9d;
+  --danger-wash: rgba(242, 170, 157, 0.14);
+
+  --radius-panel: 20px;
+  --pad-panel: 12px;
+  --radius-card: 8px;
+  --radius-bar: 16px;
+  --pad-bar: 6px;
+  --radius-bar-item: 10px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --shadow-panel:
+    0 28px 64px rgba(0, 0, 0, 0.46),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-raised: 0 6px 16px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --fast: 140ms;
+  --medium: 260ms;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  color: var(--text-main);
   overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--stage-low);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Override Vite's default centered app container for a full-bleed layout */
-#app {
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100vw;
-  height: 100vh;
-  text-align: left;
-}
-
-.designer-layout {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* --- MODE SWITCHER (top right) --- */
-.mode-switcher {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
-  z-index: 999;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 30px;
-  padding: 0.4rem;
-  display: flex;
-  gap: 0.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-.mode-btn {
-  background: transparent;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 20px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-main);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.mode-btn.active {
-  background: var(--accent-green);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(74, 93, 78, 0.3);
-}
-
-/* --- SIDEBAR --- */
-.sidebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  display: flex;
-  align-items: stretch;
-  overflow: hidden;
-  background-color: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-right: 1px solid var(--glass-border);
-  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.05);
-  z-index: 998;
-  transition: width 0.25s ease;
-}
-
-/* Disable the transition while actively dragging the resize handle,
-   so the panel tracks the cursor with no lag. */
-.sidebar.resizing {
-  transition: none;
-}
-
-.sidebar-inner {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  height: 100%;
-}
-
-.resize-handle {
-  width: 6px;
-  flex-shrink: 0;
-  cursor: col-resize;
-  background: transparent;
-  transition: background 0.2s ease;
-}
-
-.resize-handle:hover,
-.sidebar.resizing .resize-handle {
-  background: rgba(74, 93, 78, 0.25);
-}
-
-/* Floating pill that shows/hides the sidebar and slides with its edge */
-.collapse-toggle {
-  position: absolute;
-  top: 2rem;
-  z-index: 999;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--glass-border);
-  border-radius: 50%;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: var(--accent-green);
-  font-size: 1.1rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  transition: left 0.25s ease, background 0.2s ease;
-}
-
-.collapse-toggle:hover {
-  background: #fff;
-}
-
-.sidebar-header {
-  padding: 2.5rem 2rem 1.5rem 2rem;
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.brand-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 2.4rem;
-  font-weight: 300;
-  margin: 0 0 0.2rem 0;
-  letter-spacing: -1px;
-}
-
-.math-italic {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-weight: 600;
-  color: var(--accent-green);
-}
-
-.subtitle {
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 2px;
-  color: var(--text-muted);
+h1,
+h2,
+h3,
+p {
   margin: 0;
 }
 
-.sidebar-content {
-  padding: 2rem;
-  overflow-y: auto;
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+a {
+  color: var(--accent-strong);
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+/* Numbers that change or line up in columns keep a fixed width per digit. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- Glass panel -------------------------------------------------------- */
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-panel);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Without backdrop blur the glass must be opaque enough to keep text readable. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--glass-solid);
+  }
 }
 
 .panel {
-  margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--pad-panel);
+  border-radius: var(--radius-panel);
 }
 
-.panel-title {
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  margin-right: calc(var(--pad-panel) * -1 + 4px);
+  padding-right: calc(var(--pad-panel) - 4px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* Sections inside a panel are separated by space, not by rules or boxes. */
+.section + .section {
+  margin-top: var(--space-5);
+}
+
+.section-title {
+  margin-bottom: var(--space-2);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.section-hint {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  text-wrap: pretty;
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 560;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+/* ---- Buttons ------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background var(--fast), border-color var(--fast), transform var(--fast) var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--line-strong);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 750;
+  box-shadow: var(--shadow-raised);
+}
+
+.btn-primary:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--accent-strong);
+}
+
+.btn-danger {
+  color: var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-wash);
+  border-color: var(--danger);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-bar-item);
+  background: transparent;
+  color: var(--text);
+  transition: background var(--fast), transform var(--fast) var(--ease);
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.icon-btn:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.icon-btn[aria-pressed='true'] {
+  background: var(--accent-wash);
+  color: var(--accent-strong);
+}
+
+/* ---- Toolbars and segmented choices ------------------------------------ */
+
+.bar {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.4rem;
-  font-style: italic;
+  gap: 2px;
+  padding: var(--pad-bar);
+  border-radius: var(--radius-bar);
+}
+
+.bar-divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 6px 4px;
+  background: var(--line);
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.segmented button {
+  flex: 1;
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 0;
+  /* card radius 8 - padding 3 */
+  border-radius: 5px;
+  background: transparent;
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--accent-green);
+  color: var(--text-soft);
+  transition: background var(--fast), color var(--fast);
 }
 
-.badge {
-  font-family: 'Inter', sans-serif;
-  font-style: normal;
-  font-size: 0.65rem;
-  font-weight: 500;
-  color: var(--accent-green);
-  border: 1px solid rgba(74, 93, 78, 0.3);
-  border-radius: 20px;
-  padding: 0.15rem 0.55rem;
+.segmented button:hover {
+  color: var(--text);
 }
 
-.modern-select {
+.segmented button[aria-pressed='true'],
+.segmented button[aria-selected='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-raised);
+}
+
+/* ---- Form fields --------------------------------------------------------- */
+
+.field {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: rgba(0, 0, 0, 0.22);
+  transition: border-color var(--fast);
+}
+
+.field:hover {
+  border-color: var(--line-strong);
+}
+
+.field::placeholder {
+  color: var(--text-soft);
+  opacity: 0.8;
+}
+
+input[type='range'] {
   width: 100%;
-  padding: 0.8rem 1rem;
-  border: 1px solid rgba(74, 93, 78, 0.2);
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.95rem;
-  color: var(--text-main);
-  background: rgba(255, 255, 255, 0.5);
-  outline: none;
-  margin-bottom: 1.5rem;
+  height: 20px;
+  margin: 0;
+  background: transparent;
+  accent-color: var(--accent);
   cursor: pointer;
-  transition: all 0.2s;
 }
 
-.modern-select:hover,
-.modern-select:focus {
-  border-color: var(--accent-green);
-  background: rgba(255, 255, 255, 0.8);
+/* ---- Swatch grid --------------------------------------------------------- */
+
+.swatch-row {
+  display: flex;
+  gap: 6px;
 }
 
-/* --- COLOR + TEXTURE SWATCHES --- */
-.swatch-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-  gap: 12px;
-}
+/* ---- Feedback ------------------------------------------------------------ */
 
-.swatch {
-  aspect-ratio: 1;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--accent-strong);
   border-radius: 50%;
-  cursor: grab;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  animation: spin 0.7s linear infinite;
 }
 
-.swatch:active {
-  cursor: grabbing;
+.skeleton {
+  background: linear-gradient(100deg, var(--surface) 30%, var(--surface-hover) 50%, var(--surface) 70%);
+  background-size: 300% 100%;
+  animation: shimmer 1.4s linear infinite;
 }
 
-.swatch:hover {
-  transform: scale(1.15) translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-  border-color: #fff;
+.notice {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--danger-wash);
+  font-size: 12.5px;
+  color: var(--danger);
 }
 
-.texture-swatch {
-  background-size: cover;
-  background-position: center;
-  border-radius: 12px;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.loading-text {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 10px;
+@keyframes shimmer {
+  to {
+    background-position: -300% 0;
+  }
 }
 
-/* --- 3D CANVAS CONTAINER --- */
-.canvas-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-/* Respect reduced-motion preferences for the transitions above */
 @media (prefers-reduced-motion: reduce) {
-  .sidebar,
-  .collapse-toggle,
-  .swatch,
-  .mode-btn {
-    transition: none !important;
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep loading indicators legible when they cannot spin or shimmer. */
+  .spinner {
+    border-color: var(--accent-strong);
+  }
+}
+
+/* Fingers need bigger targets than pointers. */
+@media (pointer: coarse) {
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn,
+  .field {
+    min-height: 44px;
+  }
+
+  .segmented button {
+    min-height: 40px;
   }
 }

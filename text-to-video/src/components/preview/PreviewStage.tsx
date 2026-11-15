@@ -8,6 +8,7 @@ import { useElementSize } from '../../hooks/useElementSize';
 import { PreviewFrames } from '../../media/previewFrames';
 import { useEditor } from '../../store/editorStore';
 import { usePlayback } from '../../store/playbackStore';
+import { PathEditor } from './PathEditor';
 
 const MAX_DPR = 2;
 
@@ -185,6 +186,7 @@ export function PreviewStage() {
             }}
           />
         )}
+        <PathEditor width={cssWidth} height={cssHeight} />
       </div>
     </div>
   );

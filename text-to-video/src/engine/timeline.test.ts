@@ -87,6 +87,25 @@ describe('beats', () => {
     expect(synced.every((c) => Math.abs(c.duration - 1) < 1e-9)).toBe(true);
   });
 
+  it('starts the synced edit where the track starts, optionally on the next bar', () => {
+    const project = createEmptyProject();
+    const track = project.tracks.find((t) => t.kind === 'visual')!;
+    project.clips = [createVisualClip(image, track.id, 2.9), createVisualClip(image, track.id, 6)];
+    const beats = Array.from({ length: 20 }, (_, i) => i * 0.5);
+    const nearest = syncTrackToBeats(project, { i: image }, track.id, beats, 1).filter((c) => c.trackId === track.id);
+    expect(nearest.map((c) => c.start)).toEqual([3, 3.5]);
+    const onBar = syncTrackToBeats(project, { i: image }, track.id, beats, 1, { bars: [0, 2, 4, 6] }).filter((c) => c.trackId === track.id);
+    expect(onBar.map((c) => c.start)).toEqual([4, 4.5]);
+  });
+
+  it('keeps going past the last beat at the same tempo', () => {
+    const project = createEmptyProject();
+    const track = project.tracks.find((t) => t.kind === 'visual')!;
+    project.clips = [0, 3, 6].map((t) => createVisualClip(image, track.id, t));
+    const synced = syncTrackToBeats(project, { i: image }, track.id, [0, 0.5, 1], 2).filter((c) => c.trackId === track.id);
+    expect(synced.map((c) => c.start)).toEqual([0, 1, 2]);
+  });
+
   it('snaps to the closest candidate within the threshold only', () => {
     expect(snapValue(1.04, [1, 2], 0.05)).toBe(1);
     expect(snapValue(1.2, [1, 2], 0.05)).toBe(1.2);

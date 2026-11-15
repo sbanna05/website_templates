@@ -56,6 +56,10 @@ export const audioBufferCache = {
     return () => listeners.delete(listener);
   },
 
+  clear(): void {
+    ready.clear();
+  },
+
   evictAsset(assetId: string): void {
     for (const key of ready.keys()) if (key.startsWith(`${assetId}|`)) ready.delete(key);
   },

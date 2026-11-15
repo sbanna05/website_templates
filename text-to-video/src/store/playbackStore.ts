@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { audioBufferCache } from '../audio/audioBufferCache';
-import { PreviewAudio } from '../audio/previewAudio';
+import { PreviewAudio, type Levels } from '../audio/previewAudio';
 import { projectDuration } from '../engine/timeline';
 import { clamp } from '../lib/math';
 import { useEditor } from './editorStore';
@@ -20,6 +20,9 @@ interface PlaybackState {
 }
 
 const audio = new PreviewAudio();
+
+/** Live output level of the preview (after the master bus), for meters. */
+export const readLevels = (): Levels => audio.levels();
 let rafId = 0;
 
 export const usePlayback = create<PlaybackState>((set, get) => {

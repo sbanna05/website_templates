@@ -1,0 +1,30 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]: ArticVid
+    - generic [ref=e11]:
+      - button "Project" [ref=e12] [cursor=pointer]
+      - status "Your work is autosaved in this browser. Use Save to keep a project file." [ref=e18]: Autosave on
+    - textbox "Project name" [ref=e20]: Untitled edit
+    - radiogroup "Aspect ratio" [ref=e23]:
+      - radio "9:16" [checked] [ref=e24] [cursor=pointer]
+      - radio "16:9" [ref=e25] [cursor=pointer]
+      - radio "1:1" [ref=e26] [cursor=pointer]
+      - radio "4:5" [ref=e27] [cursor=pointer]
+    - group "Panels" [ref=e28]:
+      - button "Hide library" [pressed] [ref=e29] [cursor=pointer]
+      - button "Hide inspector" [pressed] [ref=e32] [cursor=pointer]
+    - button "Export" [ref=e35] [cursor=pointer]
+  - main [ref=e39]:
+    - separator "Library width" [ref=e40]
+    - separator "Inspector width" [ref=e42]
+    - separator "Timeline height" [ref=e44]
+    - button "All" [ref=e46] [cursor=pointer]
+    - button "Video" [ref=e47] [cursor=pointer]
+    - button "Text" [ref=e50] [cursor=pointer]
+    - button "Audio" [ref=e53] [cursor=pointer]
+    - button "S Solo shown" [ref=e56] [cursor=pointer]
+    - button "M" [ref=e57] [cursor=pointer]
+    - button "S" [ref=e58] [cursor=pointer]
+    - button "M" [ref=e59] [cursor=pointer]
+    - button "S" [ref=e60] [cursor=pointer]
+  - status

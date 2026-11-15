@@ -9,6 +9,7 @@ import { Select } from '../ui/Select';
 import { Slider } from '../ui/Slider';
 import { Toggle } from '../ui/Toggle';
 import { FontPicker } from './FontPicker';
+import { TextMusicSection } from './TextMusicSection';
 import { TransformSection } from './TransformSection';
 import { useClipPatch } from './useClipPatch';
 
@@ -102,18 +103,14 @@ export function TextInspector({ clip }: { clip: TextClip }) {
           <Slider label="Entrance length" value={animation.inDuration} min={0.05} max={2} step={0.05} defaultValue={0.35} format={secs} onChange={setAnim('inDuration')} />
           <Slider label="Stagger" value={animation.stagger} min={0} max={1} step={0.01} defaultValue={0.12} format={secs} onChange={setAnim('stagger')} />
         </div>
-        <Toggle
-          label="Reveal on the beat"
-          hint="Each word / letter lands on the next beat of your music"
-          checked={animation.revealOnBeat}
-          onChange={setAnim('revealOnBeat', false)}
-        />
         <div className="field-row">
           <Select label="Exit" value={animation.out} options={TEXT_OUT_OPTIONS} onChange={setAnim('out', false)} />
           <Slider label="Exit length" value={animation.outDuration} min={0.05} max={2} step={0.05} defaultValue={0.3} format={secs} onChange={setAnim('outDuration')} />
         </div>
         <Select label="Loop / beat effect" value={animation.loop} options={TEXT_LOOP_OPTIONS} onChange={setAnim('loop', false)} />
       </Section>
+
+      <TextMusicSection clip={clip} patch={patch} />
 
       <TransformSection transform={clip.transform} onChange={(transform, key) => patch({ transform }, key)} />
     </>

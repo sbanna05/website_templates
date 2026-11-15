@@ -4,10 +4,12 @@ import { ColorField } from '../ui/ColorField';
 import { Section } from '../ui/Section';
 import { Toggle } from '../ui/Toggle';
 import { Button } from '../ui/Button';
+import { BeatMatchPanel } from './BeatMatchPanel';
+import { MarksSection } from './MarksSection';
 
 export function ProjectInspector() {
   const project = useEditor((s) => s.project);
-  const { setBackground, toggleSnap, clearManualBeats } = useEditor.getState();
+  const { setBackground, toggleSnap, toggleCrossfade, clearManualBeats } = useEditor.getState();
 
   return (
     <>
@@ -20,6 +22,12 @@ export function ProjectInspector() {
       </Section>
       <Section title="Beat grid" icon="beat">
         <Toggle label="Snap to beats" hint="Clip edges stick to beat markers while dragging" checked={project.snapToBeats} onChange={toggleSnap} />
+        <Toggle
+          label="Crossfade overlapping songs"
+          hint="Where two songs overlap on one track, one fades into the other"
+          checked={project.crossfadeOverlaps}
+          onChange={toggleCrossfade}
+        />
         <p className="panel-note">
           Music you import is analysed for tempo automatically. Press <kbd>B</kbd> during playback to tap extra beats
           {project.manualBeats.length > 0 ? ` (${project.manualBeats.length} tapped).` : '.'}
@@ -30,6 +38,8 @@ export function ProjectInspector() {
           </Button>
         )}
       </Section>
+      <MarksSection />
+      <BeatMatchPanel />
       <Section title="Keyboard shortcuts" icon="sliders" defaultOpen={false}>
         <dl className="shortcuts">
           {SHORTCUTS.map(([keys, action]) => (

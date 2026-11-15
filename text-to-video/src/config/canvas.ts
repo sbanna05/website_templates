@@ -23,3 +23,9 @@ export const ASPECT_OPTIONS: { label: string; value: AspectRatio; hint: string }
 
 /** Style sizes (font size, stroke…) are authored against a 1080px short side. */
 export const REFERENCE_SHORT_SIDE = 1080;
+
+/** Width ÷ height of an aspect ratio ("9:16" → 0.5625). */
+export function aspectValue(aspect: AspectRatio): number {
+  const [w, h] = aspect.split(':').map(Number);
+  return w / h;
+}

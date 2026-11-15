@@ -5,6 +5,7 @@ import { usePlayback } from '../../store/playbackStore';
 import { IconButton } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { BeatIndicator } from './BeatIndicator';
+import { DeckReadout } from './DeckReadout';
 
 export function TransportBar() {
   const { time, playing, loop, preparing, toggle, seek, step, toggleLoop } = usePlayback();
@@ -36,6 +37,7 @@ export function TransportBar() {
       </div>
 
       <div className="transport__extras">
+        <DeckReadout />
         <button type="button" className="tap-beat" onClick={() => addManualBeat(time)} title="Tap along to mark beats (B)">
           <Icon name="beat" size={15} /> Tap beat
         </button>

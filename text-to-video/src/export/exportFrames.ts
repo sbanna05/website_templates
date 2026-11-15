@@ -19,24 +19,31 @@ export class ExportFrames implements FrameSource {
   private decoders = new Map<string, ClipDecoder>();
   private current = new Map<string, CanvasImageSource>();
 
-  static async create(project: Project, fps: number, totalFrames: number): Promise<ExportFrames> {
+  /**
+   * @param totalFrames Exclusive end frame index.
+   * @param startFrame First output frame that will be prepared; earlier frames are never decoded.
+   */
+  static async create(project: Project, fps: number, totalFrames: number, startFrame = 0): Promise<ExportFrames> {
     const instance = new ExportFrames();
     const hidden = new Set(project.tracks.filter((t) => t.hidden).map((t) => t.id));
     for (const clip of project.clips) {
       if (clip.kind !== 'visual' || hidden.has(clip.trackId)) continue;
       const handle = mediaRegistry.get(clip.assetId);
-      if (handle?.kind !== 'video') continue;
+      if (handle?.kind !== 'video' || !handle.file) continue;
+      const { file } = handle;
+      const firstFrame = Math.max(startFrame, Math.floor(clip.start * fps) - 1);
+      if (firstFrame >= totalFrames || clip.start + clip.duration <= firstFrame / fps) continue;
 
-      const input = new Input({ source: new BlobSource(handle.file), formats: ALL_FORMATS });
+      const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
       const track = await input.getPrimaryVideoTrack();
       if (!track || !(await track.canDecode())) {
         input.dispose();
-        throw new Error(`Your browser can't decode "${handle.file.name}" for export.`);
+        throw new Error(`Your browser can't decode "${file.name}" for export.`);
       }
       const duration = await track.computeDuration();
       const sink = new CanvasSink(track, { poolSize: 3 });
       const timestamps = function* () {
-        for (let f = Math.max(0, Math.floor(clip.start * fps) - 1); f < totalFrames; f += 1) {
+        for (let f = firstFrame; f < totalFrames; f += 1) {
           const t = f / fps;
           if (t >= clip.start + clip.duration) return;
           if (isClipActive(clip, t)) yield Math.min(Math.max(0, sourceTimeAt(clip, t)), duration - 1e-3);

@@ -22,7 +22,10 @@ export function MediaLibrary() {
 
   const { visuals, audio } = useMemo(() => {
     const list = Object.values(assets);
-    return { visuals: list.filter((a) => a.kind !== 'audio'), audio: list.filter((a) => a.kind === 'audio') };
+    // Stems are listed right under the song they were split from.
+    const songs = list.filter((a) => a.kind === 'audio' && !a.stemOf);
+    const audio = songs.flatMap((song) => [song, ...list.filter((a) => a.stemOf?.assetId === song.id)]);
+    return { visuals: list.filter((a) => a.kind !== 'audio'), audio };
   }, [assets]);
 
   return (

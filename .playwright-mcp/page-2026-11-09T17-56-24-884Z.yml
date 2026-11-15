@@ -1,0 +1,288 @@
+- generic [ref=f2e3]:
+  - banner [ref=f2e4]:
+    - generic [ref=f2e5]: ArticVid
+    - generic [ref=f2e11]:
+      - button "Project" [ref=f2e12] [cursor=pointer]
+      - status "Your work is autosaved in this browser. Use Save to keep a project file." [ref=f2e18]: Autosaved 18:56
+    - textbox "Project name" [ref=f2e20]: Untitled edit
+    - radiogroup "Aspect ratio" [ref=f2e23]:
+      - radio "9:16" [checked] [ref=f2e24] [cursor=pointer]
+      - radio "16:9" [ref=f2e25] [cursor=pointer]
+      - radio "1:1" [ref=f2e26] [cursor=pointer]
+      - radio "4:5" [ref=f2e27] [cursor=pointer]
+    - group "Panels" [ref=f2e28]:
+      - button "Hide library" [pressed] [ref=f2e29] [cursor=pointer]
+      - button "Hide inspector" [pressed] [ref=f2e32] [cursor=pointer]
+    - button "Export MP4" [ref=f2e35] [cursor=pointer]
+  - main [ref=f2e39]:
+    - complementary "Library" [ref=f2e61]:
+      - tablist [ref=f2e62]:
+        - tab "Media" [selected] [ref=f2e63] [cursor=pointer]
+        - tab "Music" [ref=f2e66] [cursor=pointer]
+        - tab "Text" [ref=f2e69] [cursor=pointer]
+      - generic [ref=f2e73]:
+        - button "Import photos & videos Drop files or browse · MP4, MOV, WebM, JPG, PNG" [ref=f2e75] [cursor=pointer]:
+          - strong [ref=f2e79]: Import photos & videos
+          - generic [ref=f2e80]: Drop files or browse · MP4, MOV, WebM, JPG, PNG
+        - paragraph [ref=f2e81]: Imported clips land on the timeline automatically.
+    - separator "Library width" [ref=f2e40]
+    - region "Preview" [ref=f2e82]:
+      - generic "Video preview. Click an element to select it, drag to move it." [ref=f2e85]
+      - generic [ref=f2e86]:
+        - generic "Current time" [ref=f2e87]:
+          - generic [ref=f2e88]: 00:00.0
+          - generic [ref=f2e89]: /
+          - generic [ref=f2e90]: 00:30.0
+        - generic [ref=f2e91]:
+          - button "Go to start" [ref=f2e92] [cursor=pointer]
+          - button "Previous frame" [ref=f2e95] [cursor=pointer]
+          - button "Play" [ref=f2e98] [cursor=pointer]
+          - button "Next frame" [ref=f2e101] [cursor=pointer]
+          - button "Loop playback" [pressed] [ref=f2e104] [cursor=pointer]
+        - generic [ref=f2e107]:
+          - generic "Position, chord and key" [ref=f2e108]:
+            - generic "Bar . beat" [ref=f2e109]:
+              - generic [ref=f2e110]: Bar
+              - strong [ref=f2e111]: —
+            - generic "Chord playing now" [ref=f2e112]:
+              - generic [ref=f2e113]: Chord
+              - strong [ref=f2e114]: Am
+            - generic "Key — Camelot 8B" [ref=f2e115]:
+              - generic [ref=f2e116]: Key
+              - strong [ref=f2e117]:
+                - text: C
+                - emphasis [ref=f2e118]: 8B
+          - button "Tap beat" [ref=f2e119] [cursor=pointer]
+          - generic "64 beats on the timeline" [ref=f2e122]: 128 BPM
+    - separator "Inspector width" [ref=f2e42]
+    - complementary "Inspector" [ref=f2e125]:
+      - heading "Project" [level=2] [ref=f2e129]
+      - generic [ref=f2e132]:
+        - generic [ref=f2e133]:
+          - strong [ref=f2e134]: Nothing selected
+          - paragraph [ref=f2e135]: Select a clip on the timeline or the preview to edit it. These settings apply to the whole edit.
+        - generic [ref=f2e136]:
+          - button "Canvas" [expanded] [ref=f2e138] [cursor=pointer]
+          - generic [ref=f2e145]:
+            - generic [ref=f2e146]:
+              - generic [ref=f2e147]: Background
+              - generic [ref=f2e148]: "#0E232F"
+            - generic [ref=f2e149]:
+              - 'textbox "Background #0E232F" [ref=f2e150] [cursor=pointer]': "#0e232f"
+              - group "Background swatches" [ref=f2e151]:
+                - button "#f2f6f7" [ref=f2e152] [cursor=pointer]
+                - button "#c3cfd6" [ref=f2e153] [cursor=pointer]
+                - button "#0b0f12" [ref=f2e154] [cursor=pointer]
+                - button "#98bdd5" [ref=f2e155] [cursor=pointer]
+                - button "#46789b" [ref=f2e156] [cursor=pointer]
+                - button "#a3c8b4" [ref=f2e157] [cursor=pointer]
+                - button "#55876f" [ref=f2e158] [cursor=pointer]
+                - button "#66a0a0" [ref=f2e159] [cursor=pointer]
+                - button "#c4a070" [ref=f2e160] [cursor=pointer]
+        - generic [ref=f2e161]:
+          - button "Beat grid" [expanded] [ref=f2e163] [cursor=pointer]
+          - generic [ref=f2e169]:
+            - generic [ref=f2e170] [cursor=pointer]:
+              - generic [ref=f2e171]:
+                - generic [ref=f2e172]: Snap to beats
+                - generic [ref=f2e173]: Clip edges stick to beat markers while dragging
+              - switch "Snap to beats Clip edges stick to beat markers while dragging" [checked]
+            - generic [ref=f2e176] [cursor=pointer]:
+              - generic [ref=f2e177]:
+                - generic [ref=f2e178]: Crossfade overlapping songs
+                - generic [ref=f2e179]: Where two songs overlap on one track, one fades into the other
+              - switch "Crossfade overlapping songs Where two songs overlap on one track, one fades into the other" [checked]
+            - paragraph [ref=f2e182]: Music you import is analysed for tempo automatically. Press B during playback to tap extra beats.
+        - generic [ref=f2e183]:
+          - button "Marks" [expanded] [ref=f2e185] [cursor=pointer]
+          - generic [ref=f2e191]:
+            - button "Mark at playhead" [ref=f2e192] [cursor=pointer]
+            - paragraph [ref=f2e196]: Press M while playing to drop marks on the moments that matter. Clips snap to them, and “Sync” can cut on them instead of the beat.
+        - button "Beat match" [ref=f2e199] [cursor=pointer]
+        - button "Keyboard shortcuts" [ref=f2e207] [cursor=pointer]
+    - separator "Timeline height" [ref=f2e44]
+    - region "Timeline" [ref=f2e213]:
+      - toolbar "Timeline tools" [ref=f2e214]:
+        - generic [ref=f2e215]:
+          - generic [ref=f2e216]:
+            - button "Undo (Ctrl Z)" [disabled] [ref=f2e217]
+            - button "Redo (Ctrl ⇧ Z)" [disabled] [ref=f2e220]
+            - radiogroup "Pointer tool" [ref=f2e224]:
+              - radio "Select" [ref=f2e225] [cursor=pointer]
+              - radio "Blade" [checked] [active] [ref=f2e228] [cursor=pointer]
+            - generic [ref=f2e232]:
+              - button "Split" [ref=f2e233] [cursor=pointer]
+              - button "Merge" [disabled] [ref=f2e237]
+              - button "Duplicate" [disabled] [ref=f2e241]
+              - button "Delete" [disabled] [ref=f2e245]
+              - button "Add mark at playhead (M)" [ref=f2e249] [cursor=pointer]
+          - generic [ref=f2e252]:
+            - button "Hide bars & chords row" [pressed] [ref=f2e253] [cursor=pointer]
+            - button "Zoom out (−)" [ref=f2e257] [cursor=pointer]
+            - slider "Timeline zoom" [ref=f2e260] [cursor=pointer]: "4.384906649788"
+            - button "Zoom in (+)" [ref=f2e261] [cursor=pointer]
+        - generic [ref=f2e264]:
+          - group "Show tracks" [ref=f2e265]:
+            - generic [ref=f2e266]: View
+            - button "All" [ref=f2e46] [cursor=pointer]
+            - button "Video" [ref=f2e47] [cursor=pointer]
+            - button "Text" [ref=f2e50] [cursor=pointer]
+            - button "Audio" [ref=f2e53] [cursor=pointer]
+            - button "S Solo shown" [ref=f2e56] [cursor=pointer]
+          - generic [ref=f2e267]:
+            - 'button "Snap to beats: on" [pressed] [ref=f2e268] [cursor=pointer]'
+            - group "Beat sync" [ref=f2e271]:
+              - radiogroup "Cut on" [ref=f2e272]:
+                - radio "Beats" [checked] [ref=f2e273] [cursor=pointer]
+                - radio "Marks" [ref=f2e274] [cursor=pointer]
+              - generic [ref=f2e275]: every
+              - button "1" [ref=f2e276] [cursor=pointer]
+              - button "2" [pressed] [ref=f2e277] [cursor=pointer]
+              - button "1 bar" [ref=f2e278] [cursor=pointer]
+              - button "2 bars" [ref=f2e279] [cursor=pointer]
+              - button "4 bars" [ref=f2e280] [cursor=pointer]
+              - generic "Start the first cut on a bar line (the “one”)" [ref=f2e281] [cursor=pointer]:
+                - checkbox "from bar" [checked] [ref=f2e282]
+                - text: from bar
+              - button "Sync cuts" [ref=f2e283] [cursor=pointer]
+          - generic [ref=f2e287]:
+            - generic [ref=f2e288]: Add
+            - button "Video" [ref=f2e289] [cursor=pointer]
+            - button "Text" [ref=f2e293] [cursor=pointer]
+            - button "Audio" [ref=f2e297] [cursor=pointer]
+      - generic [ref=f2e302]:
+        - generic [ref=f2e303]:
+          - generic [ref=f2e304]:
+            - generic [ref=f2e305]: 3 tracks
+            - separator "Track header width" [ref=f2e306]
+          - slider "Timeline position" [ref=f2e309]:
+            - generic [ref=f2e310]: 00:00
+            - generic [ref=f2e312]: 00:01
+            - generic [ref=f2e314]: 00:02
+            - generic [ref=f2e316]: 00:03
+            - generic [ref=f2e318]: 00:04
+            - generic [ref=f2e320]: 00:05
+            - generic [ref=f2e322]: 00:06
+            - generic [ref=f2e324]: 00:07
+            - generic [ref=f2e326]: 00:08
+            - generic [ref=f2e328]: 00:09
+            - generic [ref=f2e330]: 00:10
+            - generic [ref=f2e332]: 00:11
+            - generic [ref=f2e334]: 00:12
+            - generic [ref=f2e336]: 00:13
+            - generic [ref=f2e338]: 00:14
+            - generic [ref=f2e340]: 00:15
+            - generic [ref=f2e342]: 00:16
+            - generic [ref=f2e344]: 00:17
+            - generic [ref=f2e346]: 00:18
+            - generic [ref=f2e348]: 00:19
+            - generic [ref=f2e350]: 00:20
+            - generic [ref=f2e352]: 00:21
+            - generic [ref=f2e354]: 00:22
+            - generic [ref=f2e356]: 00:23
+            - generic [ref=f2e358]: 00:24
+            - generic [ref=f2e360]: 00:25
+            - generic [ref=f2e362]: 00:26
+            - generic [ref=f2e364]: 00:27
+            - generic [ref=f2e366]: 00:28
+            - generic [ref=f2e368]: 00:29
+            - generic [ref=f2e370]: 00:30
+            - generic [ref=f2e372]: 00:31
+            - generic [ref=f2e374]: 00:32
+            - generic [ref=f2e376]: 00:33
+            - generic [ref=f2e378]: 00:34
+            - generic [ref=f2e380]: 00:35
+            - generic [ref=f2e382]: 00:36
+            - generic [ref=f2e384]: 00:37
+            - generic [ref=f2e386]: 00:38
+            - generic [ref=f2e388]: 00:39
+            - generic [ref=f2e390]: 00:40
+            - generic [ref=f2e392]: 00:41
+            - generic [ref=f2e394]: 00:42
+        - generic [ref=f2e396]:
+          - generic [ref=f2e397]:
+            - generic "C major · Camelot 8B — am-f-c-g-128.wav" [ref=f2e400]:
+              - strong [ref=f2e401]: C major
+              - generic [ref=f2e402]: 8B
+            - button "Hide the chord row" [ref=f2e403] [cursor=pointer]
+          - generic [ref=f2e406]:
+            - generic: "1"
+            - generic: "2"
+            - generic: "3"
+            - generic: "4"
+            - generic: "5"
+            - generic: "6"
+            - generic: "7"
+            - generic: "8"
+            - generic: "9"
+            - generic: "10"
+            - generic: "11"
+            - generic: "12"
+            - generic: "13"
+            - generic: "14"
+            - generic: "15"
+            - generic: "16"
+            - button "Am" [ref=f2e407] [cursor=pointer]
+            - button "F" [ref=f2e408] [cursor=pointer]
+            - button "C" [ref=f2e409] [cursor=pointer]
+            - button "G" [ref=f2e410] [cursor=pointer]
+            - button "Am" [ref=f2e411] [cursor=pointer]
+            - button "F" [ref=f2e412] [cursor=pointer]
+            - button "C" [ref=f2e413] [cursor=pointer]
+            - button "G" [ref=f2e414] [cursor=pointer]
+            - button "Am" [ref=f2e415] [cursor=pointer]
+            - button "F" [ref=f2e416] [cursor=pointer]
+            - button "C" [ref=f2e417] [cursor=pointer]
+            - button "G" [ref=f2e418] [cursor=pointer]
+            - button "Am" [ref=f2e419] [cursor=pointer]
+            - button "F" [ref=f2e420] [cursor=pointer]
+            - button "C" [ref=f2e421] [cursor=pointer]
+            - button "G" [ref=f2e422] [cursor=pointer]
+        - generic [ref=f2e423]:
+          - generic [ref=f2e424]:
+            - generic [ref=f2e425]:
+              - button "Text track — options" [ref=f2e430] [cursor=pointer]
+              - textbox "Track name" [ref=f2e433]: Text
+              - button "Track options — colour, move, delete" [ref=f2e434] [cursor=pointer]
+              - separator "Text track height" [ref=f2e437]
+            - 'button "text clip: Drop your clips and feel the beat" [ref=f2e440]':
+              - generic [ref=f2e441]: Drop your clips and feel the beat
+          - generic [ref=f2e446]:
+            - button "Video track — options" [ref=f2e451] [cursor=pointer]
+            - textbox "Track name" [ref=f2e454]: Video
+            - button "Track options — colour, move, delete" [ref=f2e455] [cursor=pointer]
+            - generic [ref=f2e458]:
+              - button "M" [ref=f2e459] [cursor=pointer]
+              - button "S" [ref=f2e460] [cursor=pointer]
+              - button "Hide from video" [ref=f2e461] [cursor=pointer]
+              - button "Focus — show only this track" [ref=f2e464] [cursor=pointer]
+              - button "Lock track" [ref=f2e467] [cursor=pointer]
+            - separator "Video track height" [ref=f2e470]
+          - generic [ref=f2e473]:
+            - generic [ref=f2e474]:
+              - button "Audio track — options" [ref=f2e479] [cursor=pointer]
+              - textbox "Track name" [ref=f2e482]: Music
+              - button "Track options — colour, move, delete" [ref=f2e483] [cursor=pointer]
+              - generic [ref=f2e486]:
+                - button "M" [ref=f2e487] [cursor=pointer]
+                - button "S" [ref=f2e488] [cursor=pointer]
+                - button "Focus — show only this track" [ref=f2e489] [cursor=pointer]
+                - button "Lock track" [ref=f2e492] [cursor=pointer]
+              - separator "Music track height" [ref=f2e495]
+            - 'button "audio clip: am-f-c-g-128.wav" [ref=f2e498]':
+              - generic [ref=f2e502]:
+                - generic [ref=f2e503]: am-f-c-g-128.wav
+                - generic "Key C · Camelot 8B" [ref=f2e504]:
+                  - generic [ref=f2e505]: "128"
+                  - generic [ref=f2e506]: C 8B
+                - generic "Main beat — the beat grid follows this song" [ref=f2e507]
+        - generic [ref=f2e510]:
+          - generic [ref=f2e511]: + New track
+          - generic [ref=f2e512]: Drag media here to put it on its own track
+        - generic [ref=f2e513]:
+          - button "Master 100% Master output level" [ref=f2e514] [cursor=pointer]:
+            - generic [ref=f2e518]: Master
+            - generic [ref=f2e519]: 100%
+            - img "Master output level" [ref=f2e520]
+          - generic [ref=f2e524] [cursor=pointer]: Limiter
+  - status

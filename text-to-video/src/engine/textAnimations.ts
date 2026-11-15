@@ -61,6 +61,12 @@ export const IN_ANIMATIONS: Record<TextInAnimation, (p: number, c: InContext) =>
       split: 1 - p,
     };
   },
+  'slide-left': (p, c) => ({ dx: (1 - p) * c.fontPx * 1.2, opacity: appear(c.raw, 2) }),
+  'slide-right': (p, c) => ({ dx: -(1 - p) * c.fontPx * 1.2, opacity: appear(c.raw, 2) }),
+  flip: (p, c) => ({ scaleX: Math.max(0.001, p), opacity: appear(c.raw, 4) }),
+  'zoom-out': (p) => ({ scale: 1 + (1 - p) * 2.5, opacity: p }),
+  spin: (p, c) => ({ rotation: (1 - p) * Math.PI * 2, scale: Math.max(0, p), opacity: appear(c.raw, 3) }),
+  swing: (p, c) => ({ rotation: Math.sin((1 - p) * Math.PI * 3) * 0.5 * (1 - p), opacity: appear(c.raw, 3) }),
   karaoke: (_p, c) => {
     const active = c.since >= 0 && c.since < c.span;
     return { opacity: c.since < 0 ? 0.45 : 1, highlight: active ? 1 : 0, scale: active ? 1.07 : 1 };
@@ -86,6 +92,9 @@ export const LOOP_ANIMATIONS: Record<TextLoopAnimation, (c: LoopContext) => Unit
     dy: (seededRandom(beat.index * 17 + index * 3) - 0.5) * fontPx * 0.16 * beat.pulse,
     rotation: (seededRandom(beat.index * 5 + index) - 0.5) * 0.12 * beat.pulse,
   }),
+  'beat-bounce': ({ beat, fontPx }) => ({ dy: -fontPx * 0.22 * beat.pulse }),
+  'beat-flash': ({ beat }) => ({ opacity: 0.35 + 0.65 * Math.max(beat.pulse, beat.index < 0 ? 1 : 0) }),
+  'beat-color': ({ beat, index }) => ({ highlight: beat.index >= 0 && (beat.index + index) % 2 === 0 ? 1 : 0 }),
   wave: ({ time, index, fontPx }) => ({ dy: Math.sin(time * 4.5 + index * 0.6) * fontPx * 0.08 }),
   float: ({ time, index, fontPx }) => ({ dy: Math.sin(time * 1.6 + index * 0.35) * fontPx * 0.05 }),
   breathe: ({ time }) => ({ scale: 1 + Math.sin(time * 2.2) * 0.035 }),
