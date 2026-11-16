@@ -41,6 +41,8 @@ npm run dev        # http://localhost:5173
   transitions, motion, beat FX or text style for all selected clips in one go.
 - **Resizable workspace**: drag the edges between library, preview, inspector and timeline, the track-header
   column and each track's height. Hide/show the side panels from the top bar. Sizes are remembered.
+- **Works on phones and tablets**: on a phone the preview stays on top and a tab bar switches between the
+  timeline, the media library and the clip settings. Tablets stack every panel in one scrolling column.
 
 ### Beat sync (MVM editing)
 

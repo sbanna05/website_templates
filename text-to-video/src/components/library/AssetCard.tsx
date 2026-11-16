@@ -1,6 +1,9 @@
 import type { Asset } from '../../types/project';
+import { COMPACT_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
 import { formatTimecode } from '../../lib/time';
 import { useEditor } from '../../store/editorStore';
+import { toast } from '../../store/toastStore';
+import { useUi } from '../../store/uiStore';
 import { IconButton } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { SpotlightCard } from '../ui/SpotlightCard';
@@ -16,6 +19,12 @@ export function AssetCard({ asset, layout }: AssetCardProps) {
   const addAssetToTimeline = useEditor((s) => s.addAssetToTimeline);
   const removeAsset = useEditor((s) => s.removeAsset);
   const ready = asset.status === 'ready';
+  // On phones the timeline is on another tab, so confirm the add instead of leaving the tap silent.
+  const compact = useMediaQuery(COMPACT_QUERY);
+  const add = () => {
+    addAssetToTimeline(asset.id);
+    if (compact) toast(`Added “${asset.name}” to the timeline`, 'success');
+  };
   const usageCount = useEditor((s) => s.project.clips.filter((c) => c.kind !== 'text' && c.assetId === asset.id).length);
 
   return (
@@ -25,8 +34,10 @@ export function AssetCard({ asset, layout }: AssetCardProps) {
       onDragStart={(e) => {
         e.dataTransfer.setData(ASSET_DRAG_TYPE, asset.id);
         e.dataTransfer.effectAllowed = 'copy';
+        useUi.getState().setDraggedAsset(asset.id);
       }}
-      onDoubleClick={() => addAssetToTimeline(asset.id)}
+      onDragEnd={() => useUi.getState().setDraggedAsset(null)}
+      onDoubleClick={add}
       title={ready ? 'Drag onto the timeline, or double-click to append' : 'Importing…'}
     >
       <div className="asset-card__media">
@@ -56,7 +67,7 @@ export function AssetCard({ asset, layout }: AssetCardProps) {
       </div>
       {ready && (
         <div className="asset-card__actions">
-          <IconButton icon="plus" label="Add to timeline" size={15} onClick={() => addAssetToTimeline(asset.id)} />
+          <IconButton icon="plus" label="Add to timeline" size={15} onClick={add} />
           <IconButton icon="trash" label="Remove from library" size={15} onClick={() => removeAsset(asset.id)} />
         </div>
       )}

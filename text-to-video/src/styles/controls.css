@@ -336,10 +336,16 @@ input[type='range']:active::-webkit-slider-thumb {
 
 /* ---------- Toggle ---------- */
 .toggle {
+  --toggle-w: 38px;
+  --toggle-h: 22px;
+  --toggle-inset: 2px;
+  --thumb: calc(var(--toggle-h) - 2 * var(--toggle-inset) - 2px);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  min-height: 32px;
   cursor: pointer;
   font-size: var(--text-sm);
 }
@@ -354,35 +360,45 @@ input[type='range']:active::-webkit-slider-thumb {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  text-wrap: pretty;
 }
 
 .toggle__text small {
   font-size: var(--text-xs);
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .toggle__track {
   position: relative;
-  width: 38px;
-  height: 22px;
+  width: var(--toggle-w);
+  height: var(--toggle-h);
   flex-shrink: 0;
   border-radius: 999px;
   background: var(--surface-sunken);
   border: 1px solid var(--border-strong);
   box-shadow: var(--inset-well);
-  transition: background var(--duration-med);
+  transition:
+    background var(--duration-med),
+    border-color var(--duration-med);
 }
 
 .toggle__thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
+  top: var(--toggle-inset);
+  left: var(--toggle-inset);
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: 999px;
   background: var(--ink-200);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
-  transition: transform var(--duration-med) var(--ease-out);
+  transition:
+    transform var(--duration-med) var(--ease-out),
+    width var(--duration-fast) var(--ease-out),
+    background var(--duration-fast);
+}
+
+.toggle:hover .toggle__track {
+  border-color: var(--steel-400);
 }
 
 .toggle input:checked + .toggle__track {
@@ -390,13 +406,47 @@ input[type='range']:active::-webkit-slider-thumb {
 }
 
 .toggle input:checked + .toggle__track .toggle__thumb {
-  transform: translateX(16px);
+  transform: translateX(calc(var(--toggle-w) - var(--thumb) - 2 * var(--toggle-inset) - 2px));
   background: var(--ink-50);
+}
+
+/* Pressing stretches the thumb toward where it will go: the switch answers before the release. */
+.toggle:active .toggle__thumb {
+  width: calc(var(--thumb) + 5px);
+}
+
+.toggle:active input:checked + .toggle__track .toggle__thumb {
+  transform: translateX(calc(var(--toggle-w) - var(--thumb) - 5px - 2 * var(--toggle-inset) - 2px));
 }
 
 .toggle input:focus-visible + .toggle__track {
   outline: 2px solid var(--steel-300);
   outline-offset: 2px;
+}
+
+.toggle.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toggle.is-disabled:active .toggle__thumb {
+  width: var(--thumb);
+}
+
+/* Fingers need a bigger switch than a mouse pointer. */
+@media (pointer: coarse) {
+  .toggle {
+    --toggle-w: 46px;
+    --toggle-h: 28px;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle__track,
+  .toggle__thumb {
+    transition: none;
+  }
 }
 
 /* ---------- Color ---------- */

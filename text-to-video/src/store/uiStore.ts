@@ -4,6 +4,9 @@ import type { TrackKind } from '../types/project';
 
 export type LibraryTab = 'media' | 'audio' | 'text';
 
+/** On phones only one panel fits under the preview; this is the one showing. */
+export type MobilePane = 'timeline' | 'library' | 'inspector';
+
 /** Timeline pointer tool: Select (move, trim) or Blade (click a clip to cut it). */
 export type EditTool = 'select' | 'blade';
 
@@ -78,6 +81,14 @@ interface UiState {
   showChords: boolean;
   /** The drawn-path move being edited on the preview, if any. */
   pathEdit: PathEditTarget | null;
+  mobilePane: MobilePane;
+  /**
+   * The library asset being dragged. Browsers hide drag data until the drop,
+   * so lanes read this to preview where (and whether) the asset will land.
+   */
+  draggedAssetId: string | null;
+  setMobilePane: (pane: MobilePane) => void;
+  setDraggedAsset: (assetId: string | null) => void;
   setPathEdit: (target: PathEditTarget | null) => void;
   setTool: (tool: EditTool) => void;
   setViewHidden: (trackId: string, hidden: boolean) => void;
@@ -106,6 +117,10 @@ export const useUi = create<UiState>((set) => ({
   viewHidden: {},
   showChords: true,
   pathEdit: null,
+  mobilePane: 'timeline',
+  draggedAssetId: null,
+  setMobilePane: (mobilePane) => set({ mobilePane }),
+  setDraggedAsset: (draggedAssetId) => set({ draggedAssetId }),
   setPathEdit: (pathEdit) => set({ pathEdit }),
   setTool: (tool) => set({ tool }),
   setViewHidden: (trackId, hidden) =>

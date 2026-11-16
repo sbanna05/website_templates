@@ -2,6 +2,7 @@ import { gsap } from 'gsap';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react';
 import { ExportDialog } from './components/export/ExportDialog';
 import { Inspector } from './components/inspector/Inspector';
+import { MobileNav } from './components/layout/MobileNav';
 import { TopBar } from './components/layout/TopBar';
 import { MediaLibrary } from './components/library/MediaLibrary';
 import { PreviewPanel } from './components/preview/PreviewPanel';
@@ -11,6 +12,7 @@ import { PanelBoundary } from './components/ui/PanelBoundary';
 import { Splitter } from './components/ui/Splitter';
 import { Toaster } from './components/ui/Toaster';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { COMPACT_QUERY, STACKED_QUERY, useMediaQuery } from './hooks/useMediaQuery';
 import { useEditor } from './store/editorStore';
 import { useSaveStatus } from './store/saveStore';
 import { LAYOUT_LIMITS, useUi } from './store/uiStore';
@@ -21,6 +23,9 @@ export default function App() {
   const shellRef = useRef<HTMLDivElement>(null);
   const [fileOver, setFileOver] = useState(false);
   const layout = useUi((s) => s.layout);
+  const mobilePane = useUi((s) => s.mobilePane);
+  const stacked = useMediaQuery(STACKED_QUERY);
+  const compact = useMediaQuery(COMPACT_QUERY);
   const { setSize, resetSize } = useUi.getState();
   const busy = useSaveStatus((s) => s.busy);
   useKeyboardShortcuts();
@@ -30,11 +35,20 @@ export default function App() {
     void useSaveStatus.getState().init();
   }, []);
 
+  // Phones show one panel under the preview; wider stacked layouts show every panel; desktop follows the panel toggles.
+  const show = {
+    library: compact ? mobilePane === 'library' : stacked || layout.libraryOpen,
+    inspector: compact ? mobilePane === 'inspector' : stacked || layout.inspectorOpen,
+    timeline: !compact || mobilePane === 'timeline',
+  };
+  // Stacked panels scroll with the page, so there is nothing to drag-resize.
+  const resizable = !stacked;
+
   // Panel sizes are CSS variables, so the grid (and its responsive fallbacks) stays in CSS.
   // Side panels are capped relative to the window so the preview never gets squeezed out on small screens.
   const workspaceStyle = {
-    '--panel-w': layout.libraryOpen ? `min(${layout.libraryWidth}px, 28vw)` : '0px',
-    '--inspector-w': layout.inspectorOpen ? `min(${layout.inspectorWidth}px, 34vw)` : '0px',
+    '--panel-w': show.library ? `min(${layout.libraryWidth}px, 28vw)` : '0px',
+    '--inspector-w': show.inspector ? `min(${layout.inspectorWidth}px, 34vw)` : '0px',
     '--timeline-h': `${layout.timelineHeight}px`,
   } as CSSProperties;
 
@@ -69,15 +83,16 @@ export default function App() {
       <main
         className="workspace"
         style={workspaceStyle}
-        data-library={layout.libraryOpen ? 'open' : 'closed'}
-        data-inspector={layout.inspectorOpen ? 'open' : 'closed'}
+        data-library={show.library ? 'open' : 'closed'}
+        data-inspector={show.inspector ? 'open' : 'closed'}
+        data-pane={compact ? mobilePane : undefined}
       >
-        {layout.libraryOpen && (
+        {show.library && (
           <PanelBoundary name="library" className="library">
             <MediaLibrary />
           </PanelBoundary>
         )}
-        {layout.libraryOpen && (
+        {resizable && show.library && (
           <Splitter
             orientation="vertical"
             label="Library width"
@@ -91,7 +106,7 @@ export default function App() {
         <PanelBoundary name="preview" className="preview">
           <PreviewPanel />
         </PanelBoundary>
-        {layout.inspectorOpen && (
+        {resizable && show.inspector && (
           <Splitter
             orientation="vertical"
             label="Inspector width"
@@ -103,25 +118,30 @@ export default function App() {
             onReset={() => resetSize('inspectorWidth')}
           />
         )}
-        {layout.inspectorOpen && (
+        {show.inspector && (
           <PanelBoundary name="inspector" className="inspector">
             <Inspector />
           </PanelBoundary>
         )}
-        <Splitter
-          orientation="horizontal"
-          label="Timeline height"
-          className="workspace__split-timeline"
-          direction={-1}
-          value={layout.timelineHeight}
-          {...LAYOUT_LIMITS.timelineHeight}
-          onChange={(v) => setSize('timelineHeight', v)}
-          onReset={() => resetSize('timelineHeight')}
-        />
-        <PanelBoundary name="timeline" className="timeline">
-          <Timeline />
-        </PanelBoundary>
+        {resizable && (
+          <Splitter
+            orientation="horizontal"
+            label="Timeline height"
+            className="workspace__split-timeline"
+            direction={-1}
+            value={layout.timelineHeight}
+            {...LAYOUT_LIMITS.timelineHeight}
+            onChange={(v) => setSize('timelineHeight', v)}
+            onReset={() => resetSize('timelineHeight')}
+          />
+        )}
+        {show.timeline && (
+          <PanelBoundary name="timeline" className="timeline">
+            <Timeline />
+          </PanelBoundary>
+        )}
       </main>
+      {compact && <MobileNav />}
       <ExportDialog />
       <Toaster />
       {busy && (

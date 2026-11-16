@@ -236,6 +236,9 @@
 }
 
 /* ---------- Responsive ---------- */
+/* Breakpoints mirror STACKED_QUERY and COMPACT_QUERY in hooks/useMediaQuery.ts. */
+
+/* Stacked (tablet): every panel at full width, scrolling with the page. */
 @media (max-width: 980px) {
   body {
     overflow: auto;
@@ -259,9 +262,12 @@
     margin: 0;
   }
 
-  .workspace,
-  .workspace[data-library],
-  .workspace[data-inspector] {
+  .topbar__export {
+    margin-left: auto;
+  }
+
+  /* Matches the specificity of the open/closed column rules above so the stacked grid wins. */
+  .workspace[data-library][data-inspector] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 62vh var(--timeline-h) auto auto;
     grid-template-areas:
@@ -269,18 +275,115 @@
       'timeline'
       'inspector'
       'library';
-    gap: 10px;
-  }
-
-  /* Stacked layout: panels take the full width and scroll with the page, so the drag handles are hidden. */
-  .workspace__split-library,
-  .workspace__split-inspector,
-  .workspace__split-timeline {
-    display: none;
+    gap: var(--space-2);
   }
 
   .library,
   .inspector {
     max-height: 70vh;
   }
+}
+
+/* Compact (phone): an app-like screen — preview on top, one panel below, tab bar at the bottom. */
+@media (max-width: 760px) {
+  body {
+    overflow: hidden;
+  }
+
+  .app {
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .topbar {
+    padding: var(--space-2) var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .topbar__name {
+    min-width: 0;
+    padding: 0 var(--space-2);
+  }
+
+  .workspace[data-library][data-inspector] {
+    grid-template-rows: minmax(200px, 44%) minmax(0, 1fr);
+    grid-template-areas:
+      'preview'
+      'pane';
+    padding: 0 var(--space-2);
+  }
+
+  .workspace .library,
+  .workspace .inspector,
+  .workspace .timeline {
+    grid-area: pane;
+    max-height: none;
+  }
+
+  .file-overlay > div {
+    padding: var(--space-6) var(--space-5);
+  }
+}
+
+/* ---------- Phone tab bar ---------- */
+.mobile-nav {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-2) max(var(--space-2), env(safe-area-inset-bottom));
+}
+
+.mobile-nav__item {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 6px 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.mobile-nav__item.is-active {
+  color: var(--text);
+  background: var(--accent-soft);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-nav__item.is-active svg {
+  color: var(--accent);
+}
+
+.mobile-nav__item:focus-visible {
+  outline: 2px solid var(--steel-300);
+  outline-offset: 2px;
+}
+
+.mobile-nav__count {
+  position: absolute;
+  top: 4px;
+  left: calc(50% + 8px);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--ink-50);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
 }

@@ -1,4 +1,5 @@
 import { ASPECT_OPTIONS } from '../../config/canvas';
+import { STACKED_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
 import { useEditor } from '../../store/editorStore';
 import { useUi } from '../../store/uiStore';
 import { Button, IconButton } from '../ui/Button';
@@ -14,6 +15,8 @@ export function TopBar() {
   const libraryOpen = useUi((s) => s.layout.libraryOpen);
   const inspectorOpen = useUi((s) => s.layout.inspectorOpen);
   const togglePanel = useUi((s) => s.togglePanel);
+  // Stacked layouts always show every panel (phones switch them from the tab bar), so the toggles would do nothing.
+  const stacked = useMediaQuery(STACKED_QUERY);
 
   return (
     <header className="topbar">
@@ -28,13 +31,7 @@ export function TopBar() {
 
       <ProjectMenu />
 
-      <input
-        className="topbar__name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        aria-label="Project name"
-        spellCheck={false}
-      />
+      <input className="topbar__name" value={name} onChange={(e) => setName(e.target.value)} aria-label="Project name" spellCheck={false} />
 
       <div className="topbar__aspect">
         <Segmented
@@ -46,20 +43,22 @@ export function TopBar() {
         />
       </div>
 
-      <div className="topbar__panels" role="group" aria-label="Panels">
-        <IconButton
-          icon="panel-left"
-          label={libraryOpen ? 'Hide library' : 'Show library'}
-          active={libraryOpen}
-          onClick={() => togglePanel('libraryOpen')}
-        />
-        <IconButton
-          icon="panel-right"
-          label={inspectorOpen ? 'Hide inspector' : 'Show inspector'}
-          active={inspectorOpen}
-          onClick={() => togglePanel('inspectorOpen')}
-        />
-      </div>
+      {!stacked && (
+        <div className="topbar__panels" role="group" aria-label="Panels">
+          <IconButton
+            icon="panel-left"
+            label={libraryOpen ? 'Hide library' : 'Show library'}
+            active={libraryOpen}
+            onClick={() => togglePanel('libraryOpen')}
+          />
+          <IconButton
+            icon="panel-right"
+            label={inspectorOpen ? 'Hide inspector' : 'Show inspector'}
+            active={inspectorOpen}
+            onClick={() => togglePanel('inspectorOpen')}
+          />
+        </div>
+      )}
 
       <Button variant="primary" icon="download" onClick={openExport} className="topbar__export">
         Export
